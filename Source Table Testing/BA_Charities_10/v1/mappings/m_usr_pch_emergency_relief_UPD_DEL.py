@@ -1,0 +1,105 @@
+# Databricks notebook source
+# MAGIC %run "./udf_informatica"
+
+# COMMAND ----------
+
+
+from pyspark.sql.types import *
+
+spark.sql("use DELTA_TRAINING")
+spark.sql("set spark.sql.legacy.timeParserPolicy = LEGACY")
+
+
+# COMMAND ----------
+# DBTITLE 1, Shortcut_to_UDH_PCH_EMERGENCY_RELIEF_0
+
+
+df_0 = spark.sql("""SELECT
+  ER_GRANT_ID AS ER_GRANT_ID,
+  ER_DT AS ER_DT,
+  ER_SEQ_NO AS ER_SEQ_NO,
+  ER_RESCUE_TYPE_ID AS ER_RESCUE_TYPE_ID,
+  ER_SPECIES_ID AS ER_SPECIES_ID,
+  ER_PAYMENT_TYPE_ID AS ER_PAYMENT_TYPE_ID,
+  ER_STATE AS ER_STATE,
+  ER_REGION AS ER_REGION,
+  ER_DISTRICT AS ER_DISTRICT,
+  STORE AS STORE,
+  NO_OF_ANIMAL AS NO_OF_ANIMAL,
+  REQUESTED_AMT AS REQUESTED_AMT,
+  FUNDED_AMT AS FUNDED_AMT,
+  ACTION AS ACTION,
+  USER_ID AS USER_ID,
+  UPDATE_TSTMP AS UPDATE_TSTMP,
+  LOAD_TSTMP AS LOAD_TSTMP
+FROM
+  UDH_PCH_EMERGENCY_RELIEF""")
+
+df_0.createOrReplaceTempView("Shortcut_to_UDH_PCH_EMERGENCY_RELIEF_0")
+
+# COMMAND ----------
+# DBTITLE 1, SQ_Shortcut_to_UDH_PCH_EMERGENCY_RELIEF_1
+
+
+df_1 = spark.sql("""SELECT
+  ER_GRANT_ID AS ER_GRANT_ID,
+  ER_DT AS ER_DT,
+  ER_SEQ_NO AS ER_SEQ_NO,
+  ACTION AS ACTION,
+  monotonically_increasing_id() AS Monotonically_Increasing_Id
+FROM
+  Shortcut_to_UDH_PCH_EMERGENCY_RELIEF_0
+WHERE
+  ACTION = 'Delete'""")
+
+df_1.createOrReplaceTempView("SQ_Shortcut_to_UDH_PCH_EMERGENCY_RELIEF_1")
+
+# COMMAND ----------
+# DBTITLE 1, EXP_TRANS_2
+
+
+df_2 = spark.sql("""SELECT
+  ER_GRANT_ID AS ER_GRANT_ID,
+  ER_DT AS ER_DT,
+  ER_SEQ_NO AS ER_SEQ_NO,
+  1 AS DELETED_IND,
+  SESSSTARTTIME AS LOAD_TSTMP,
+  Monotonically_Increasing_Id AS Monotonically_Increasing_Id
+FROM
+  SQ_Shortcut_to_UDH_PCH_EMERGENCY_RELIEF_1""")
+
+df_2.createOrReplaceTempView("EXP_TRANS_2")
+
+# COMMAND ----------
+# DBTITLE 1, UPD_TRANS_3
+
+
+df_3 = spark.sql("""SELECT
+  ER_GRANT_ID AS ER_GRANT_ID,
+  ER_DT AS ER_DT,
+  ER_SEQ_NO AS ER_SEQ_NO,
+  DELETED_IND AS DELETED_IND,
+  LOAD_TSTMP AS LOAD_TSTMP,
+  Monotonically_Increasing_Id AS Monotonically_Increasing_Id
+FROM
+  EXP_TRANS_2""")
+
+df_3.createOrReplaceTempView("UPD_TRANS_3")
+
+# COMMAND ----------
+# DBTITLE 1, USR_PCH_EMERGENCY_RELIEF
+
+
+spark.sql("""MERGE INTO USR_PCH_EMERGENCY_RELIEF AS TARGET
+USING
+  UPD_TRANS_3 AS SOURCE ON TARGET.ER_SEQ_NO = SOURCE.ER_SEQ_NO
+  AND TARGET.ER_DT = SOURCE.ER_DT
+  AND TARGET.GRANT_REQ_ID = SOURCE.ER_GRANT_ID
+  WHEN MATCHED THEN
+UPDATE
+SET
+  TARGET.GRANT_REQ_ID = SOURCE.ER_GRANT_ID,
+  TARGET.ER_DT = SOURCE.ER_DT,
+  TARGET.ER_SEQ_NO = SOURCE.ER_SEQ_NO,
+  TARGET.DELETED_IND = SOURCE.DELETED_IND,
+  TARGET.UPDATE_TSTMP = SOURCE.LOAD_TSTMP""")
