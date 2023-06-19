@@ -1,0 +1,77 @@
+{
+	"type" : "mainWorkflow",
+	"variables": {
+		"logTableName" : "DELTA_TRAINING.wf_WMS_To_SCDS_Every_4_Hrs_error_logs",
+		"variablesTableName" : "DELTA_TRAINING.wf_WMS_To_SCDS_Every_4_Variables",
+		"name" : "wf_WMS_To_SCDS_Every_4_Hrs",
+		"parameterFileName" :"wf_WMS_To_SCDS_Every_4_Hrs_param.json"
+	},
+	"wf_json": {
+		"name": "wf_WMS_To_SCDS_Every_4_Hrs_version_2",
+		"format": "",
+		"schedule": {
+			"quartz_cron_expression": "33 15 11 * * ?",
+			"timezone_id": "Asia/Calcutta",
+			"pause_status": "PAUSED"
+		},
+		"tasks": [
+			{
+				"task_key": "Wkl_SCDS_STG_Pre_Load",
+				"existing_cluster_id": "0114-231435-3t9ktdx7",
+				"timeout_seconds": 0,
+				"email_notifications": {},
+				"notebook_task": {
+					"notebook_path": "/Shared/WMS-Petsmart-POC/Workflow2/WorkflowExecutor"
+				},
+				"depends_on": []
+			},
+			{
+				"task_key": "Wkl_SCDS_Base_Load",
+				"existing_cluster_id": "0114-231435-3t9ktdx7",
+				"timeout_seconds": 0,
+				"email_notifications": {},
+				"notebook_task": {
+					"notebook_path": "/Shared/WMS-Petsmart-POC/Workflow2/WorkflowExecutor"
+				},
+				"depends_on": [
+					{
+						"task_key": "Wkl_SCDS_STG_Pre_Load"
+					}
+				]
+			},
+			{
+				"task_key": "s_Last_Run_Dt",
+				"existing_cluster_id": "0114-231435-3t9ktdx7",
+				"timeout_seconds": 0,
+				"email_notifications": {},
+				"notebook_task": {
+					"notebook_path": "/Shared/WMS-Petsmart-POC/Workflow2/Mappings/m_Last_Run_Dt"
+				},
+				"depends_on": [
+					{
+						"task_key": "Wkl_SCDS_Base_Load"
+					}
+				]
+			}
+		],
+		"no_alert_for_skipped_runs": "false",
+		"timeout_seconds": 0,
+		"max_concurrent_runs": 1,
+		"email_notifications": {
+			"no_alert_for_skipped_runs": "false"
+		},
+		"access_control_list": [
+			{
+				"user_name": "sarang.dahiwale@nucleusteq.com",
+				"permission_level": "CAN_MANAGE"
+			},
+			{
+				"user_name": "manav.jindal@nucleusteq.com",
+				"permission_level": "IS_OWNER"
+			}
+		]
+	},
+    "widgets" : [],
+	"preWorkletVariableUpdation":{},
+	"postWorkletVariableUpdation":{}
+}

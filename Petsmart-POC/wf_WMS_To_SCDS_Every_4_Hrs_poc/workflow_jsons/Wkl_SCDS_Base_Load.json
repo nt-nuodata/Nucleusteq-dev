@@ -1,0 +1,63 @@
+{
+	"type" : "subWorkflow",
+	"variables": {},
+	"wf_json": {
+		"run_name": "Wkl_SCDS_Base_Load",
+		"tasks": [
+			{
+				"task_key": "s_WM_Ucl_User",
+				"existing_cluster_id": "0114-231435-3t9ktdx7",
+				"notebook_task": {
+					"notebook_path": "/Shared/WMS-Petsmart-POC/Workflow2/Mappings/m_WM_Ucl_User",
+					"base_parameters": {
+						"canTruncateTargetTables" : "true"
+					}
+				},
+				"depends_on": []
+			},
+			{
+				"task_key": "s_WM_E_Dept",
+				"existing_cluster_id": "0114-231435-3t9ktdx7",
+				"notebook_task": {
+					"notebook_path": "/Shared/WMS-Petsmart-POC/Workflow2/Mappings/m_WM_E_Dept",
+					"base_parameters": {
+						"canTruncateTargetTables" : "true"
+					}
+				},
+				"depends_on": [
+					{
+						"task_key": "s_WM_Ucl_User"
+					}
+				]
+			},
+			{
+				"task_key": "s_WM_E_Consol_Perf_Smry",
+				"existing_cluster_id": "0114-231435-3t9ktdx7",
+				"notebook_task": {
+					"notebook_path": "/Shared/WMS-Petsmart-POC/Workflow2/Mappings/m_WM_E_Consol_Perf_Smry",
+					"base_parameters": {
+						"canTruncateTargetTables" : "true"
+					}
+				},
+				"depends_on": [
+					{
+						"task_key": "s_WM_E_Dept"
+					}
+				]
+			}
+		],
+		"access_control_list": [
+			{
+				"user_name": "sarang.dahiwale@nucleusteq.com",
+				"permission_level": "CAN_MANAGE"
+			},
+			{
+				"user_name": "manav.jindal@nucleusteq.com",
+				"permission_level": "IS_OWNER"
+			}
+		]
+	},
+    "widgets" : ["mainWorkflowId", "mainWorkflowRunId", "logTableName", "parentName", "variablesTableName"],
+	"preWorkletVariableUpdation":{},
+	"postWorkletVariableUpdation":{}
+}
