@@ -1,4 +1,7 @@
 # Databricks notebook source
+# MAGIC %run ./Env
+
+# COMMAND ----------
 
 import requests
 import json
@@ -6,13 +9,12 @@ from time import sleep
 from pyspark.sql.functions import *
 import os
 from IPython.display import display, Markdown
+import pandas as pd
 
-instance_id = "dbc-e55d56e6-6512.cloud.databricks.com"
-api_version = '/api/2.1/'
 base_url = f"https://{instance_id}{api_version}"
 
 params = {
- "Authorization" : "Bearer dapi21b79674b638dc1bb7d7e635c98243c9",
+ "Authorization" : f"Bearer {auth_token}",
  "Content-Type" : "application/json"
  }
 
@@ -24,6 +26,7 @@ def getJobDetails(job_id):
     print(json.dumps(response.text))
 
 def oneTimeRun(wklt_json):
+    print(wklt_json)
     one_time_run_api = 'jobs/runs/submit'
     url = f"{base_url}{one_time_run_api}"
     response = requests.post(url = url, headers = params, data = json.dumps(wklt_json))
@@ -37,9 +40,11 @@ def getJobRunOutput(run_id):
     response = requests.get(url = url, headers = params)
 
 def createJob(wklt_json):
+    print(wklt_json)
     create_job_api = 'jobs/create'
     url = f"{base_url}{create_job_api}"
     response = requests.post(url = url, headers = params, data = json.dumps(wklt_json))
+    print(json.loads(response.text))
     job_id = json.loads(response.text)['job_id']
     print("job_id : " + str(job_id))
     return json.dumps(json.loads(response.text))
@@ -222,7 +227,8 @@ def createVariableTable(parametersFileName, variableTableName, job_id_json):
     notebook_path = dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get()
     folder_path = os.path.dirname(notebook_path)
     
-    parameters_df = spark.read.option("multiline", "true").json(f"file:///Workspace/{folder_path}/{parametersFileName}")
+    dataframe = spark.createDataFrame(pd.read_json(f'./{parametersFileName}'))
+    parameters_df = spark.createDataFrame(dataframe)
     job_id = json.loads(job_id_json)['job_id']
     parameters_df = parameters_df.withColumn("job_id",lit(job_id))
     parameters_df.write.mode("append").format("delta").saveAsTable(variableTableName)
@@ -230,3 +236,35 @@ def createVariableTable(parametersFileName, variableTableName, job_id_json):
 
 # COMMAND ----------
 
+def readWorkflowJson(workflowName):
+    path = "./workflow_jsons/" + workflowName + ".json"
+    f = open(path)
+    return json.load(f)
+
+# COMMAND ----------
+
+def addNotebookBaseParameters(variables, workflow):
+    wf_json = workflow['wf_json']
+    if(workflow['type'] == "mainWorkflow"):
+        base_parameters = {"mainWorkflowId": "{{job_id}}", "mainWorkflowRunId": "{{run_id}}", "logTableName": "logTableName", "parentName": "name","variablesTableName": "variablesTableName","workflowName" : "workflowName"}
+        for variable in variables:
+            if(variable == 'name'):
+                base_parameters['parentName'] = variables['name']
+            else:
+                base_parameters[variable] = variables[variable]
+    elif workflow['type'] == "subWorkflow" :
+        base_parameters = {"mainWorkflowId": "", "mainWorkflowRunId": "", "logTableName" : "", "parentName" : "","variablesTableName" : ""}
+        for variable in variables:
+            if(variable == 'parentName'):
+                base_parameters['parentName'] = wf_json['run_name']
+            else:
+                base_parameters[variable] = variables[variable]
+
+    for task in wf_json['tasks']:
+        base_parameters['workflowName'] = task['task_key']
+        parameters_list = {}
+        if('base_parameters' in task['notebook_task']):
+            parameters_list.update(task['notebook_task']['base_parameters'])
+        parameters_list.update(base_parameters)
+        task['notebook_task']['base_parameters'] = parameters_list
+    return wf_json  

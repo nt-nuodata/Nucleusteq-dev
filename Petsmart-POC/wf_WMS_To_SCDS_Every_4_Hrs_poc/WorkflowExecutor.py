@@ -3,41 +3,6 @@
 
 # COMMAND ----------
 
-import json
-def readWorkflowJson(workflowName):
-    f = open(f"/Workspace/Shared/WMS-Petsmart-POC/Workflow2/workflow_jsons/{workflowName}.json")
-    return json.load(f)
-
-# COMMAND ----------
-
-def addNotebookBaseParameters(variables, workflow):
-    wf_json = workflow['wf_json']
-    if(workflow['type'] == "mainWorkflow"):
-        base_parameters = {"mainWorkflowId": "{{job_id}}", "mainWorkflowRunId": "{{run_id}}", "logTableName": "logTableName", "parentName": "name","variablesTableName": "variablesTableName","workflowName" : "workflowName"}
-        for variable in variables:
-            if(variable == 'name'):
-                base_parameters['parentName'] = variables['name']
-            else:
-                base_parameters[variable] = variables[variable]
-    elif workflow['type'] == "subWorkflow" :
-        base_parameters = {"mainWorkflowId": "", "mainWorkflowRunId": "", "logTableName" : "", "parentName" : "","variablesTableName" : ""}
-        for variable in variables:
-            if(variable == 'parentName'):
-                base_parameters['parentName'] = wf_json['run_name']
-            else:
-                base_parameters[variable] = variables[variable]
-
-    for task in wf_json['tasks']:
-        base_parameters['workflowName'] = task['task_key']
-        parameters_list = {}
-        if('base_parameters' in task['notebook_task']):
-            parameters_list.update(task['notebook_task']['base_parameters'])
-        parameters_list.update(base_parameters)
-        task['notebook_task']['base_parameters'] = parameters_list
-    return wf_json  
-
-# COMMAND ----------
-
 def main(workflowName):
 
     #Extract workflow json from json file.

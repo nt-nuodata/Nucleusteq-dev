@@ -6,9 +6,10 @@
 		"tasks": [
 			{
 				"task_key": "s_WM_Ucl_User_PRE",
-				"existing_cluster_id": "0114-231435-3t9ktdx7",
+				"job_cluster_key": "sySeW1s6v2r52os4_Wvo",
 				"notebook_task": {
-					"notebook_path": "/Shared/WMS-Petsmart-POC/Workflow2/Mappings/m_WM_Ucl_User_PRE",
+					"notebook_path": "Petsmart-POC/wf_WMS_To_SCDS_Every_4_Hrs_poc/Mappings/m_WM_Ucl_User_PRE.py",
+					"source":"GIT",
 					"base_parameters": {
 						"canTruncateTargetTables" : "true"
 					}
@@ -17,9 +18,10 @@
 			},
 			{
 				"task_key": "s_WM_E_Dept_PRE",
-				"existing_cluster_id": "0114-231435-3t9ktdx7",
+				"job_cluster_key": "sySeW1s6v2r52os4_Wvo",
 				"notebook_task": {
-					"notebook_path": "/Shared/WMS-Petsmart-POC/Workflow2/Mappings/m_WM_E_Dept_PRE",
+					"notebook_path": "Petsmart-POC/wf_WMS_To_SCDS_Every_4_Hrs_poc/Mappings/m_WM_E_Dept_PRE.py",
+					"source":"GIT",
 					"base_parameters": {
 						"canTruncateTargetTables" : "true"
 					}
@@ -32,9 +34,10 @@
 			},
 			{
 				"task_key": "s_WM_E_Consol_Perf_Smry_PRE",
-				"existing_cluster_id": "0114-231435-3t9ktdx7",
+				"job_cluster_key": "sySeW1s6v2r52os4_Wvo",
 				"notebook_task": {
-					"notebook_path": "/Shared/WMS-Petsmart-POC/Workflow2/Mappings/m_WM_E_Consol_Perf_Smry_PRE",
+					"notebook_path": "Petsmart-POC/wf_WMS_To_SCDS_Every_4_Hrs_poc/Mappings/m_WM_E_Consol_Perf_Smry_PRE.py",
+					"source":"GIT",
 					"base_parameters": {
 						"canTruncateTargetTables" : "true"
 					}
@@ -57,7 +60,6 @@
 			}
 		]
 	},
-    "widgets" : ["mainWorkflowId", "mainWorkflowRunId", "logTableName", "parentName", "variablesTableName"],
 	"preWorkletVariableUpdation":{"wk_Last_Run_Dt" : "wkl_Last_Run_Dt"},
 	"postWorkletVariableUpdation":{}
 }

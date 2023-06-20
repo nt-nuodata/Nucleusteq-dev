@@ -3,12 +3,18 @@
 	"variables": {},
 	"wf_json": {
 		"run_name": "Wkl_SCDS_Base_Load",
+		"git_source":{
+			"git_url": "https://github.com/nt-nuodata/Nucleusteq-dev.git",
+			"git_branch" : "master",
+			"git_provider" : "gitHub"
+		},
 		"tasks": [
 			{
 				"task_key": "s_WM_Ucl_User",
-				"existing_cluster_id": "0114-231435-3t9ktdx7",
+				"job_cluster_key": "sySeW1s6v2r52os4_Wvo",
 				"notebook_task": {
-					"notebook_path": "/Shared/WMS-Petsmart-POC/Workflow2/Mappings/m_WM_Ucl_User",
+					"notebook_path": "Petsmart-POC/wf_WMS_To_SCDS_Every_4_Hrs_poc/Mappings/m_WM_Ucl_User.py",
+					"source":"GIT",
 					"base_parameters": {
 						"canTruncateTargetTables" : "true"
 					}
@@ -17,9 +23,10 @@
 			},
 			{
 				"task_key": "s_WM_E_Dept",
-				"existing_cluster_id": "0114-231435-3t9ktdx7",
+				"job_cluster_key": "sySeW1s6v2r52os4_Wvo",
 				"notebook_task": {
-					"notebook_path": "/Shared/WMS-Petsmart-POC/Workflow2/Mappings/m_WM_E_Dept",
+					"notebook_path": "Petsmart-POC/wf_WMS_To_SCDS_Every_4_Hrs_poc/Mappings/m_WM_E_Dept.py",
+					"source":"GIT",
 					"base_parameters": {
 						"canTruncateTargetTables" : "true"
 					}
@@ -32,9 +39,10 @@
 			},
 			{
 				"task_key": "s_WM_E_Consol_Perf_Smry",
-				"existing_cluster_id": "0114-231435-3t9ktdx7",
+				"job_cluster_key": "sySeW1s6v2r52os4_Wvo",
 				"notebook_task": {
-					"notebook_path": "/Shared/WMS-Petsmart-POC/Workflow2/Mappings/m_WM_E_Consol_Perf_Smry",
+					"notebook_path": "Petsmart-POC/wf_WMS_To_SCDS_Every_4_Hrs_poc/Mappings/m_WM_E_Consol_Perf_Smry.py",
+					"source":"GIT",
 					"base_parameters": {
 						"canTruncateTargetTables" : "true"
 					}
@@ -57,7 +65,6 @@
 			}
 		]
 	},
-    "widgets" : ["mainWorkflowId", "mainWorkflowRunId", "logTableName", "parentName", "variablesTableName"],
 	"preWorkletVariableUpdation":{},
 	"postWorkletVariableUpdation":{}
 }

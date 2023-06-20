@@ -3,12 +3,18 @@
 	"variables": {},
 	"wf_json":  {
 		"run_name": "Wkl_SCDS_STG_Pre_Load",
+		"git_source":{
+			"git_url": "https://github.com/nt-nuodata/Nucleusteq-dev.git",
+			"git_branch" : "master",
+			"git_provider" : "gitHub"
+		},
 		"tasks": [
 			{
 				"task_key": "wkl_SCDS_STG_PRE_Load_DC_14",
-				"existing_cluster_id": "0114-231435-3t9ktdx7",
+				"job_cluster_key": "sySeW1s6v2r52os4_Wvo",
 				"notebook_task": {
-					"notebook_path": "/Shared/WMS-Petsmart-POC/Workflow2/WorkflowExecutor",
+					"notebook_path": "Petsmart-POC/wf_WMS_To_SCDS_Every_4_Hrs_poc/WorkflowExecutor.py",
+					"source":"GIT",
 					"base_parameters": {}
 				},
 				"depends_on": []
@@ -17,7 +23,8 @@
 				"task_key": "wkl_SCDS_STG_PRE_Load_DC_36",
 				"existing_cluster_id": "0114-231435-3t9ktdx7",
 				"notebook_task": {
-					"notebook_path": "/Shared/WMS-Petsmart-POC/Workflow2/WorkflowExecutor",
+					"notebook_path": "Petsmart-POC/wf_WMS_To_SCDS_Every_4_Hrs_poc/WorkflowExecutor.py",
+					"source":"GIT",
 					"base_parameters": {}
 				},
 				"depends_on": [{"task_key": "wkl_SCDS_STG_PRE_Load_DC_14"}]
@@ -26,7 +33,8 @@
 				"task_key": "wkl_SCDS_STG_PRE_Load_DC_10",
 				"existing_cluster_id": "0114-231435-3t9ktdx7",
 				"notebook_task": {
-					"notebook_path": "/Shared/WMS-Petsmart-POC/Workflow2/WorkflowExecutor",
+					"notebook_path": "Petsmart-POC/wf_WMS_To_SCDS_Every_4_Hrs_poc/WorkflowExecutor.py",
+					"source":"GIT",
 					"base_parameters": {}
 				},
 				"depends_on": [{"task_key": "wkl_SCDS_STG_PRE_Load_DC_36"}]
@@ -35,7 +43,8 @@
 				"task_key": "wkl_SCDS_STG_PRE_Load_DC_12",
 				"existing_cluster_id": "0114-231435-3t9ktdx7",
 				"notebook_task": {
-					"notebook_path": "/Shared/WMS-Petsmart-POC/Workflow2/WorkflowExecutor",
+					"notebook_path": "Petsmart-POC/wf_WMS_To_SCDS_Every_4_Hrs_poc/WorkflowExecutor.py",
+					"source":"GIT",
 					"base_parameters": {}
 				},
 				"depends_on": [{"task_key": "wkl_SCDS_STG_PRE_Load_DC_10"}]
@@ -44,7 +53,8 @@
 				"task_key": "wkl_SCDS_STG_PRE_Load_DC_22",
 				"existing_cluster_id": "0114-231435-3t9ktdx7",
 				"notebook_task": {
-					"notebook_path": "/Shared/WMS-Petsmart-POC/Workflow2/WorkflowExecutor",
+					"notebook_path": "Petsmart-POC/wf_WMS_To_SCDS_Every_4_Hrs_poc/WorkflowExecutor.py",
+					"source":"GIT",
 					"base_parameters": {}
 				},
 				"depends_on": [{"task_key": "wkl_SCDS_STG_PRE_Load_DC_12"}]
@@ -53,7 +63,8 @@
 				"task_key": "wkl_SCDS_STG_PRE_Load_DC_38",
 				"existing_cluster_id": "0114-231435-3t9ktdx7",
 				"notebook_task": {
-					"notebook_path": "/Shared/WMS-Petsmart-POC/Workflow2/WorkflowExecutor",
+					"notebook_path": "Petsmart-POC/wf_WMS_To_SCDS_Every_4_Hrs_poc/WorkflowExecutor.py",
+					"source":"GIT",
 					"base_parameters": {}
 				},
 				"depends_on": [{"task_key": "wkl_SCDS_STG_PRE_Load_DC_22"}]
@@ -62,7 +73,8 @@
 				"task_key": "wkl_SCDS_STG_PRE_Load_DC_41",
 				"existing_cluster_id": "0114-231435-3t9ktdx7",
 				"notebook_task": {
-					"notebook_path": "/Shared/WMS-Petsmart-POC/Workflow2/WorkflowExecutor",
+					"notebook_path": "Petsmart-POC/wf_WMS_To_SCDS_Every_4_Hrs_poc/WorkflowExecutor.py",
+					"source":"GIT",
 					"base_parameters": {}
 				},
 				"depends_on": [{"task_key": "wkl_SCDS_STG_PRE_Load_DC_38"}]
@@ -76,7 +88,6 @@
 			{"user_name": "manav.jindal@nucleusteq.com", "permission_level": "IS_OWNER"}
 		]
 	},
-    "widgets" : ["mainWorkflowId", "mainWorkflowRunId", "logTableName", "parentName", "variablesTableName"],
 	"preWorkletVariableUpdation":{
 		"wkl_Last_Run_Dt" : "wf_Last_Run_Dt"
 	},
