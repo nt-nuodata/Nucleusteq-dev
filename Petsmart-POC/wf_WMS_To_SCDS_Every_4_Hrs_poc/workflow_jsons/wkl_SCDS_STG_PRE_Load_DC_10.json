@@ -11,7 +11,7 @@
 		"tasks": [
 			{
 				"task_key": "s_WM_Ucl_User_PRE",
-				"job_cluster_key": "sySeW1s6v2r52os4_Wvo",
+				"existing_cluster_id": "sySeW1s6v2r52os4_Wvo",
 				"notebook_task": {
 					"notebook_path": "Petsmart-POC/wf_WMS_To_SCDS_Every_4_Hrs_poc/Mappings/m_WM_Ucl_User_PRE.py",
 					"source": "GIT",
@@ -23,7 +23,7 @@
 			},
 			{
 				"task_key": "s_WM_E_Dept_PRE",
-				"job_cluster_key": "sySeW1s6v2r52os4_Wvo",
+				"existing_cluster_id": "sySeW1s6v2r52os4_Wvo",
 				"notebook_task": {
 					"notebook_path": "Petsmart-POC/wf_WMS_To_SCDS_Every_4_Hrs_poc/Mappings/m_WM_E_Dept_PRE.py",
 					"source": "GIT",
@@ -39,7 +39,7 @@
 			},
 			{
 				"task_key": "s_WM_E_Consol_Perf_Smry_PRE",
-				"job_cluster_key": "sySeW1s6v2r52os4_Wvo",
+				"existing_cluster_id": "sySeW1s6v2r52os4_Wvo",
 				"notebook_task": {
 					"notebook_path": "Petsmart-POC/wf_WMS_To_SCDS_Every_4_Hrs_poc/Mappings/m_WM_E_Consol_Perf_Smry_PRE.py",
 					"source": "GIT",
