@@ -56,12 +56,12 @@
 		],
 		"access_control_list": [
 			{
-				"user_name": "sarang.dahiwale@nucleusteq.com",
-				"permission_level": "CAN_MANAGE"
+				"user_name": "swapnil.deshmukh@nucleusteq.com",
+				"permission_level": "IS_OWNER"
 			},
 			{
 				"user_name": "manav.jindal@nucleusteq.com",
-				"permission_level": "IS_OWNER"
+				"permission_level": "CAN_MANAGE_RUN"
 			}
 		]
 	},
