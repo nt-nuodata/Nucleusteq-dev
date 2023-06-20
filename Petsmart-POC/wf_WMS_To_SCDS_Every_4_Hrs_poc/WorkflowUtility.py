@@ -30,6 +30,7 @@ def oneTimeRun(wklt_json):
     one_time_run_api = 'jobs/runs/submit'
     url = f"{base_url}{one_time_run_api}"
     response = requests.post(url = url, headers = params, data = json.dumps(wklt_json))
+    print(response.text)
     json_run_id = json.loads(response.text)['run_id']
     displayRunUrl(json_run_id)
     return json_run_id
