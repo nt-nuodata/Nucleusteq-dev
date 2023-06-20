@@ -227,8 +227,7 @@ def createVariableTable(parametersFileName, variableTableName, job_id_json):
     notebook_path = dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get()
     folder_path = os.path.dirname(notebook_path)
     
-    dataframe = spark.createDataFrame(pd.read_json(f'./{parametersFileName}'))
-    parameters_df = spark.createDataFrame(dataframe)
+    parameters_df = spark.createDataFrame(pd.read_json(f'./{parametersFileName}'))
     job_id = json.loads(job_id_json)['job_id']
     parameters_df = parameters_df.withColumn("job_id",lit(job_id))
     parameters_df.write.mode("append").format("delta").saveAsTable(variableTableName)
