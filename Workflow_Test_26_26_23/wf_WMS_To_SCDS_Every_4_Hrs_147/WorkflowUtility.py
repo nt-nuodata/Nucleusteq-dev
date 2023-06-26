@@ -152,6 +152,8 @@ def fetchAndCreateVariables(parentElementName, elementName, variablesTableName, 
         dataType = variable['data_type']
         # Assign the value to the variable
         if(dataType=='integer'):
+            if variable['value'] == '':
+                variable['value'] = 0
             value=int(variable['value'])
         elif (dataType == "date/time"):
             value = parser.parse(value)
