@@ -152,7 +152,10 @@ def fetchAndCreateVariables(parentElementName, elementName, variablesTableName, 
         dataType = variable['data_type']
         # Assign the value to the variable
         if(dataType=='integer'):
-            value=int(variable['value'])
+            if variable['value'] == '':
+                value = 0
+            else:
+                value=int(variable['value'])
         elif (dataType == "date/time"):
             value = parser.parse(value)
         print(name)
@@ -208,12 +211,11 @@ def updateMappingVariable(parametersTableName, elementName, mainWorkflowId, pare
 
 # COMMAND ----------
 
-def truncateTargetTables(targetTables, check):
-    print(check)
-    if(check == "true"):
-        for target in targetTables:
-            print(target)
-            spark.sql(f"""TRUNCATE TABLE {target}""")
+def truncateTargetTables(targetTables):
+    targetTables = json.loads(targetTables)
+    for targetTable in targetTables:
+        if(targetTables[targetTable] == "YES"):
+            spark.sql(f"""TRUNCATE TABLE {targetTable}""")
 
 
 # COMMAND ----------
