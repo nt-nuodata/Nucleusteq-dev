@@ -212,7 +212,7 @@ def truncateTargetTables(targetTables):
     targetTables = json.loads(targetTables)
     for targetTable in targetTables:
         if(targetTables[targetTable] == "YES"):
-            spark.sql(f"""TRUNCATE TABLE {target}""")
+            spark.sql(f"""TRUNCATE TABLE {targetTable}""")
 
 
 # COMMAND ----------
