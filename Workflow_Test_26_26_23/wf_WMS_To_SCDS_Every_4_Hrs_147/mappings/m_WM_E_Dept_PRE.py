@@ -122,7 +122,7 @@ query_2 = f"""SELECT
   VERSION_ID AS VERSION_ID,
   CREATED_DTTM AS CREATED_DTTM,
   LAST_UPDATED_DTTM AS LAST_UPDATED_DTTM,
-  SYSTIMESTAMP() AS LOAD_TSTMP_EXP,
+  current_timestamp()  AS LOAD_TSTMP_EXP,
   Monotonically_Increasing_Id AS Monotonically_Increasing_Id
 FROM
   SQ_Shortcut_to_E_DEPT_1"""
