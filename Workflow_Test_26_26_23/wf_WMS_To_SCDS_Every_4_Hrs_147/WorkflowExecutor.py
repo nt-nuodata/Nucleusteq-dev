@@ -50,8 +50,8 @@ def main(workflowName):
             widgets[variable_name] = dbutils.widgets.get(variable_name)
 
         #Pre worklet variable updation
-        if (len(workflow['preWorkletVariableUpdation']) != 0):
-            preWorkletVariableUpdation = workflow['preWorkletVariableUpdation']
+        if (len(workflow['preVariableUpdation']) != 0):
+            preWorkletVariableUpdation = workflow['preVariableUpdation']
             updateVariable(preWorkletVariableUpdation, widgets['variablesTableName'], widgets['mainWorkflowId'], widgets['parentName'], elementName)
 
         wf_json = workflow['wf_json']
@@ -66,8 +66,8 @@ def main(workflowName):
         checkJobStatus(run_id, widgets['mainWorkflowId'], widgets['mainWorkflowRunId'],widgets['logTableName'])
 
         #Post worklet variable updation
-        if (len(workflow['postWorkletVariableUpdation']) != 0):
-            postWorkletVariableUpdation = workflow['postWorkletVariableUpdation']
+        if (len(workflow['postVariableUpdation']) != 0):
+            postWorkletVariableUpdation = workflow['postVariableUpdation']
             updateVariable(postWorkletVariableUpdation, widgets['variablesTableName'], widgets['mainWorkflowId'], widgets['parentName'], elementName)
 
         # Update Workflow Variables in database.
