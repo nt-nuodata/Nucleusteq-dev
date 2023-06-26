@@ -234,9 +234,6 @@ FROM
 
 df_2 = spark.sql(query_2)
 
-if EXPTRANS_2.count() > 0 :
-
-
 df_2.createOrReplaceTempView("EXPTRANS_2")
 
 # COMMAND ----------

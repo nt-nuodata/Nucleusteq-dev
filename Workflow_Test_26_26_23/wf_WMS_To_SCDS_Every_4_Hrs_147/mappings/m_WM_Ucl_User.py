@@ -229,9 +229,6 @@ FROM
 
 df_2 = spark.sql(query_2)
 
-if EXP_INT_CONVERSION_2.count() > 0 :
-
-
 df_2.createOrReplaceTempView("EXP_INT_CONVERSION_2")
 
 # COMMAND ----------
@@ -768,9 +765,6 @@ FROM
   FIL_UNCHANGED_RECORDS_9"""
 
 df_10 = spark.sql(query_10)
-
-if EXP_UPD_VALIDATOR_10.count() > 0 :
-
 
 df_10.createOrReplaceTempView("EXP_UPD_VALIDATOR_10")
 

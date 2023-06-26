@@ -166,8 +166,8 @@ FROM
 
 df_2 = spark.sql(query_2)
 
-if EXP_LAST_RUN_DT_2.count() > 0 :
-  Last_Run_Dt = EXP_LAST_RUN_DT_2.agg({'SET_LAST_RUN_DT' : 'max'}).collect()[0][0]
+if df_2.count() > 0 :
+  Last_Run_Dt = df_2.agg({'SET_LAST_RUN_DT' : 'max'}).collect()[0][0]
 
 df_2.createOrReplaceTempView("EXP_LAST_RUN_DT_2")
 

@@ -119,9 +119,6 @@ FROM
 
 df_2 = spark.sql(query_2)
 
-if EXP_INT_CONV_2.count() > 0 :
-
-
 df_2.createOrReplaceTempView("EXP_INT_CONV_2")
 
 # COMMAND ----------
@@ -499,9 +496,6 @@ FROM
   FIL_NO_CHANGE_REC_9"""
 
 df_10 = spark.sql(query_10)
-
-if EXP_EVAL_VALUES_10.count() > 0 :
-
 
 df_10.createOrReplaceTempView("EXP_EVAL_VALUES_10")
 
