@@ -7,7 +7,8 @@ def main(workflowName):
 
     #Extract workflow json from json file.
     workflow = readWorkflowJson(workflowName)
-    print(workflow)
+    print(json.dumps(workflow))
+    elementName = workflowName
 
     if(workflow['type'] == "mainWorkflow"):
 
