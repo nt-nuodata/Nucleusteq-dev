@@ -9,7 +9,7 @@
                 "timeout_seconds": 0,
                 "notebook_task": {
                     "source": "GIT",
-                    "notebook_path": "Workflow_Test_26_26_23/wf_WMS_To_SCDS_Every_4_Hrs_147/m_WM_Ucl_User",
+                    "notebook_path": "Workflow_Test_26_26_23/wf_WMS_To_SCDS_Every_4_Hrs_147/mappings/m_WM_Ucl_User",
                     "base_parameters": {
                         "postVariableAssignment": "{}",
                         "truncTargetTableOptions": "{}",
@@ -23,7 +23,7 @@
                 "timeout_seconds": 0,
                 "notebook_task": {
                     "source": "GIT",
-                    "notebook_path": "Workflow_Test_26_26_23/wf_WMS_To_SCDS_Every_4_Hrs_147/m_WM_E_Dept",
+                    "notebook_path": "Workflow_Test_26_26_23/wf_WMS_To_SCDS_Every_4_Hrs_147/mappings/m_WM_E_Dept",
                     "base_parameters": {
                         "postVariableAssignment": "{}",
                         "truncTargetTableOptions": "{}",
@@ -41,7 +41,7 @@
                 "timeout_seconds": 0,
                 "notebook_task": {
                     "source": "GIT",
-                    "notebook_path": "Workflow_Test_26_26_23/wf_WMS_To_SCDS_Every_4_Hrs_147/m_WM_E_Consol_Perf_Smry",
+                    "notebook_path": "Workflow_Test_26_26_23/wf_WMS_To_SCDS_Every_4_Hrs_147/mappings/m_WM_E_Consol_Perf_Smry",
                     "base_parameters": {
                         "postVariableAssignment": "{}",
                         "truncTargetTableOptions": "{}",
