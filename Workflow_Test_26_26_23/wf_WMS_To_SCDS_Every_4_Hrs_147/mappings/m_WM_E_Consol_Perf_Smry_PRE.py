@@ -222,12 +222,12 @@ FROM
   Shortcut_to_E_CONSOL_PERF_SMRY_0
 WHERE
   {Initial_Load} (
-    trunc(
-      Shortcut_to_E_CONSOL_PERF_SMRY_0.CREATE_DATE_TIME
-    ) >= trunc(to_date('{Prev_Run_Dt}', 'MM/DD/YYYY HH24:MI:SS')) - 1
+    date_trunc(
+      'DAY',Shortcut_to_E_CONSOL_PERF_SMRY_0.CREATE_DATE_TIME
+    ) >= date_trunc('DAY', to_date(DATE_FORMAT(CAST('{Prev_Run_Dt}' AS timestamp),'MM/dd/yyyy HH:mm:ss'), 'MM/dd/yyyy HH:mm:ss')) - INTERVAL '1' DAY
   )
   OR (
-    trunc(Shortcut_to_E_CONSOL_PERF_SMRY_0.MOD_DATE_TIME) >= trunc(to_date('{Prev_Run_Dt}', 'MM/DD/YYYY HH24:MI:SS')) - 1
+    date_trunc('DAY', Shortcut_to_E_CONSOL_PERF_SMRY_0.MOD_DATE_TIME) >= date_trunc('DAY', to_date(DATE_FORMAT(CAST('{Prev_Run_Dt}' AS timestamp),'MM/dd/yyyy HH:mm:ss'), 'MM/dd/yyyy HH:mm:ss')) - INTERVAL '1' DAY
   )
   AND 1 = 1"""
 

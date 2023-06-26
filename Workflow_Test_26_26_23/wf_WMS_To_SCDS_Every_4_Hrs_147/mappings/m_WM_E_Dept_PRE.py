@@ -84,16 +84,16 @@ FROM
   Shortcut_to_E_DEPT_0
 WHERE
   {Initial_Load} (
-    trunc(CREATE_DATE_TIME) >= trunc(to_date('{Prev_Run_Dt}', 'MM/DD/YYYY HH24:MI:SS')) -1
+    date_trunc('DAY', CREATE_DATE_TIME) >= date_trunc('DAY' ,to_date(DATE_FORMAT(CAST('{Prev_Run_Dt}' AS timestamp),'MM/dd/yyyy HH:mm:ss'), 'MM/dd/yyyy HH:mm:ss')) - INTERVAL '1' DAY
   )
   OR (
-    trunc(MOD_DATE_TIME) >= trunc(to_date('{Prev_Run_Dt}', 'MM/DD/YYYY HH24:MI:SS')) -1
+    date_trunc('DAY', MOD_DATE_TIME) >= date_trunc('DAY', to_date(DATE_FORMAT(CAST('{Prev_Run_Dt}' AS timestamp),'MM/dd/yyyy HH:mm:ss'), 'MM/dd/yyyy HH:mm:ss')) - INTERVAL '1' DAY
   )
   OR (
-    trunc(CREATED_DTTM) >= trunc(to_date('{Prev_Run_Dt}', 'MM/DD/YYYY HH24:MI:SS')) -1
+    date_trunc('DAY', CREATED_DTTM) >= date_trunc('DAY', to_date(DATE_FORMAT(CAST('{Prev_Run_Dt}' AS timestamp),'MM/dd/yyyy HH:mm:ss'), 'MM/dd/yyyy HH:mm:ss')) - INTERVAL '1' DAY
   )
   OR (
-    trunc(LAST_UPDATED_DTTM) >= trunc(to_date('{Prev_Run_Dt}', 'MM/DD/YYYY HH24:MI:SS')) -1
+    date_trunc('DAY', LAST_UPDATED_DTTM) >= date_trunc('DAY',to_date(DATE_FORMAT(CAST('{Prev_Run_Dt}' AS timestamp),'MM/dd/yyyy HH:mm:ss'), 'MM/dd/yyyy HH:mm:ss')) - INTERVAL '1' DAY
   )
   AND 1 = 1"""
 
