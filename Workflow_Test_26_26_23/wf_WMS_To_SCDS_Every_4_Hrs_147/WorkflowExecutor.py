@@ -7,7 +7,7 @@ def main(workflowName):
 
     #Extract workflow json from json file.
     workflow = readWorkflowJson(workflowName)
-    print(json.dumps(workflow))
+
     elementName = workflowName
 
     if(workflow['type'] == "mainWorkflow"):
@@ -53,7 +53,7 @@ def main(workflowName):
 
         #Pre worklet variable updation
         if (len(workflow['preVariableUpdation']) != 0):
-            preWorkletVariableUpdation = workflow['preVariableUpdation']
+            preWorkletVariableUpdation = json.dumps(workflow['preVariableUpdation'])
             updateVariable(preWorkletVariableUpdation, widgets['variablesTableName'], widgets['mainWorkflowId'], widgets['parentName'], elementName)
 
         wf_json = workflow['wf_json']
