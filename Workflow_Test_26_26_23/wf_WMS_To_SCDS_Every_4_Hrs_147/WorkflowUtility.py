@@ -208,11 +208,10 @@ def updateMappingVariable(parametersTableName, elementName, mainWorkflowId, pare
 
 # COMMAND ----------
 
-def truncateTargetTables(targetTables, check):
-    print(check)
-    if(check == "true"):
-        for target in targetTables:
-            print(target)
+def truncateTargetTables(targetTables):
+    targetTables = json.loads(targetTables)
+    for targetTable in targetTables:
+        if(targetTables[targetTable] == "YES"):
             spark.sql(f"""TRUNCATE TABLE {target}""")
 
 
