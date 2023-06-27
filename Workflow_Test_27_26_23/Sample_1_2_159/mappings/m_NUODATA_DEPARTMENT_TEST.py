@@ -27,10 +27,10 @@ truncateTargetTables(truncTargetTableOptions)
 
 # COMMAND ----------
 #Pre presession variable updation
-updateVariable(preVariableAssignment, variablesTableName, mainWorkflowId, parentName, m_NUODATA_DEPARTMENT_TEST)
+updateVariable(preVariableAssignment, variablesTableName, mainWorkflowId, parentName, "m_NUODATA_DEPARTMENT_TEST")
 
 # COMMAND ----------
-fetchAndCreateVariables(parentName,m_NUODATA_DEPARTMENT_TEST, variablesTableName, mainWorkflowId)
+fetchAndCreateVariables(parentName,"m_NUODATA_DEPARTMENT_TEST", variablesTableName, mainWorkflowId)
 
 # COMMAND ----------
 # DBTITLE 1, Shortcut_to_TEST_DEPARTMENT_target_v1_0
@@ -196,8 +196,8 @@ FROM
 
 # COMMAND ----------
 #Post session variable updation
-updateVariable(postVariableAssignment, variablesTableName, mainWorkflowId, parentName, m_NUODATA_DEPARTMENT_TEST)
+updateVariable(postVariableAssignment, variablesTableName, mainWorkflowId, parentName, "m_NUODATA_DEPARTMENT_TEST")
 
 # COMMAND ----------
 #Update Mapping Variables in database.
-persistVariables(variablesTableName, m_NUODATA_DEPARTMENT_TEST, mainWorkflowId, parentName)
+persistVariables(variablesTableName, "m_NUODATA_DEPARTMENT_TEST", mainWorkflowId, parentName)
