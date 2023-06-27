@@ -84,16 +84,16 @@ FROM
   Shortcut_to_E_DEPT_0
 WHERE
   {Initial_Load} (
-    date_trunc('DAY', CREATE_DATE_TIME) >= date_trunc('DAY' ,to_date(DATE_FORMAT(CAST('{Prev_Run_Dt}' AS timestamp),'MM/dd/yyyy HH:mm:ss'), 'MM/dd/yyyy HH:mm:ss')) - INTERVAL '1' DAY
+    trunc(CREATE_DATE_TIME) >= trunc(to_date('{Prev_Run_Dt}', 'MM/DD/YYYY HH24:MI:SS')) -1
   )
   OR (
-    date_trunc('DAY', MOD_DATE_TIME) >= date_trunc('DAY', to_date(DATE_FORMAT(CAST('{Prev_Run_Dt}' AS timestamp),'MM/dd/yyyy HH:mm:ss'), 'MM/dd/yyyy HH:mm:ss')) - INTERVAL '1' DAY
+    trunc(MOD_DATE_TIME) >= trunc(to_date('{Prev_Run_Dt}', 'MM/DD/YYYY HH24:MI:SS')) -1
   )
   OR (
-    date_trunc('DAY', CREATED_DTTM) >= date_trunc('DAY', to_date(DATE_FORMAT(CAST('{Prev_Run_Dt}' AS timestamp),'MM/dd/yyyy HH:mm:ss'), 'MM/dd/yyyy HH:mm:ss')) - INTERVAL '1' DAY
+    trunc(CREATED_DTTM) >= trunc(to_date('{Prev_Run_Dt}', 'MM/DD/YYYY HH24:MI:SS')) -1
   )
   OR (
-    date_trunc('DAY', LAST_UPDATED_DTTM) >= date_trunc('DAY',to_date(DATE_FORMAT(CAST('{Prev_Run_Dt}' AS timestamp),'MM/dd/yyyy HH:mm:ss'), 'MM/dd/yyyy HH:mm:ss')) - INTERVAL '1' DAY
+    trunc(LAST_UPDATED_DTTM) >= trunc(to_date('{Prev_Run_Dt}', 'MM/DD/YYYY HH24:MI:SS')) -1
   )
   AND 1 = 1"""
 
@@ -122,7 +122,7 @@ query_2 = f"""SELECT
   VERSION_ID AS VERSION_ID,
   CREATED_DTTM AS CREATED_DTTM,
   LAST_UPDATED_DTTM AS LAST_UPDATED_DTTM,
-  current_timestamp()  AS LOAD_TSTMP_EXP,
+  SYSTIMESTAMP() AS LOAD_TSTMP_EXP,
   Monotonically_Increasing_Id AS Monotonically_Increasing_Id
 FROM
   SQ_Shortcut_to_E_DEPT_1"""

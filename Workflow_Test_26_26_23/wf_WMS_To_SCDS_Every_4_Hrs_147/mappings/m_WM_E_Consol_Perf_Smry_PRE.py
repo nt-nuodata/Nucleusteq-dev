@@ -222,12 +222,12 @@ FROM
   Shortcut_to_E_CONSOL_PERF_SMRY_0
 WHERE
   {Initial_Load} (
-    date_trunc(
-      'DAY',Shortcut_to_E_CONSOL_PERF_SMRY_0.CREATE_DATE_TIME
-    ) >= date_trunc('DAY', to_date(DATE_FORMAT(CAST('{Prev_Run_Dt}' AS timestamp),'MM/dd/yyyy HH:mm:ss'), 'MM/dd/yyyy HH:mm:ss')) - INTERVAL '1' DAY
+    trunc(
+      Shortcut_to_E_CONSOL_PERF_SMRY_0.CREATE_DATE_TIME
+    ) >= trunc(to_date('{Prev_Run_Dt}', 'MM/DD/YYYY HH24:MI:SS')) - 1
   )
   OR (
-    date_trunc('DAY', Shortcut_to_E_CONSOL_PERF_SMRY_0.MOD_DATE_TIME) >= date_trunc('DAY', to_date(DATE_FORMAT(CAST('{Prev_Run_Dt}' AS timestamp),'MM/dd/yyyy HH:mm:ss'), 'MM/dd/yyyy HH:mm:ss')) - INTERVAL '1' DAY
+    trunc(Shortcut_to_E_CONSOL_PERF_SMRY_0.MOD_DATE_TIME) >= trunc(to_date('{Prev_Run_Dt}', 'MM/DD/YYYY HH24:MI:SS')) - 1
   )
   AND 1 = 1"""
 
@@ -325,7 +325,7 @@ query_2 = f"""SELECT
   RESOURCE_GROUP_ID AS RESOURCE_GROUP_ID,
   COMP_ASSIGNMENT_ID AS COMP_ASSIGNMENT_ID,
   REFLECTIVE_CODE AS REFLECTIVE_CODE,
-  current_timestamp() AS LOAD_TSTMP_EXP,
+  SYSTIMESTAMP() AS LOAD_TSTMP_EXP,
   Monotonically_Increasing_Id AS Monotonically_Increasing_Id
 FROM
   SQ_Shortcut_to_E_CONSOL_PERF_SMRY_1"""
