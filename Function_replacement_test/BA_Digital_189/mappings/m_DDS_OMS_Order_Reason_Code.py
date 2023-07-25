@@ -1,0 +1,345 @@
+# Databricks notebook source
+# MAGIC %run "./udf_informatica"
+
+# COMMAND ----------
+
+
+from pyspark.sql.types import *
+
+spark.sql("use DELTA_TRAINING")
+spark.sql("set spark.sql.legacy.timeParserPolicy = LEGACY")
+
+# COMMAND ----------
+%run ../WorkflowUtility
+
+# COMMAND ----------
+mainWorkflowId = dbutils.widgets.get("mainWorkflowId")
+mainWorkflowRunId = dbutils.widgets.get("mainWorkflowRunId")
+parentName = dbutils.widgets.get("parentName")
+preVariableAssignment = dbutils.widgets.get("preVariableAssignment")
+postVariableAssignment = dbutils.widgets.get("postVariableAssignment")
+truncTargetTableOptions = dbutils.widgets.get("truncTargetTableOptions")
+variablesTableName = dbutils.widgets.get("variablesTableName")
+
+# COMMAND ----------
+#Truncate Target Tables
+truncateTargetTables(truncTargetTableOptions)
+
+# COMMAND ----------
+#Pre presession variable updation
+updateVariable(preVariableAssignment, variablesTableName, mainWorkflowId, parentName, "m_DDS_OMS_Order_Reason_Code")
+
+# COMMAND ----------
+fetchAndCreateVariables(parentName,"m_DDS_OMS_Order_Reason_Code", variablesTableName, mainWorkflowId)
+
+# COMMAND ----------
+# DBTITLE 1, Shortcut_to_OMS_ORDER_REASON_CODE_PRE_0
+
+
+query_0 = f"""SELECT
+  ORDER_REASON_CODE_ID AS ORDER_REASON_CODE_ID,
+  ORDER_ID AS ORDER_ID,
+  ORDER_LINE_ID AS ORDER_LINE_ID,
+  REASON_TYPE AS REASON_TYPE,
+  REASON_CODE AS REASON_CODE,
+  USER_NAME AS USER_NAME,
+  REASON_CODE_DTTM AS REASON_CODE_DTTM,
+  LOAD_TSTMP AS LOAD_TSTMP
+FROM
+  OMS_ORDER_REASON_CODE_PRE"""
+
+df_0 = spark.sql(query_0)
+
+df_0.createOrReplaceTempView("Shortcut_to_OMS_ORDER_REASON_CODE_PRE_0")
+
+# COMMAND ----------
+# DBTITLE 1, SQ_Shortcut_to_OMS_ORDER_REASON_CODE_PRE_1
+
+
+query_1 = f"""SELECT
+  ORDER_REASON_CODE_ID AS ORDER_REASON_CODE_ID,
+  ORDER_ID AS ORDER_ID,
+  ORDER_LINE_ID AS ORDER_LINE_ID,
+  REASON_TYPE AS REASON_TYPE,
+  REASON_CODE AS REASON_CODE,
+  USER_NAME AS USER_NAME,
+  REASON_CODE_DTTM AS REASON_CODE_DTTM,
+  LOAD_TSTMP AS LOAD_TSTMP,
+  monotonically_increasing_id() AS Monotonically_Increasing_Id
+FROM
+  Shortcut_to_OMS_ORDER_REASON_CODE_PRE_0"""
+
+df_1 = spark.sql(query_1)
+
+df_1.createOrReplaceTempView("SQ_Shortcut_to_OMS_ORDER_REASON_CODE_PRE_1")
+
+# COMMAND ----------
+# DBTITLE 1, Shortcut_to_OMS_ORDER_REASON_CODE_2
+
+
+query_2 = f"""SELECT
+  OMS_ORDER_REASON_CODE_ID AS OMS_ORDER_REASON_CODE_ID,
+  OMS_ORDER_ID AS OMS_ORDER_ID,
+  OMS_ORDER_LINE_ID AS OMS_ORDER_LINE_ID,
+  OMS_REASON_TYPE AS OMS_REASON_TYPE,
+  OMS_REASON_CD AS OMS_REASON_CD,
+  USER_NAME AS USER_NAME,
+  REASON_CD_TSTMP AS REASON_CD_TSTMP,
+  UPDATE_TSTMP AS UPDATE_TSTMP,
+  LOAD_TSTMP AS LOAD_TSTMP
+FROM
+  OMS_ORDER_REASON_CODE"""
+
+df_2 = spark.sql(query_2)
+
+df_2.createOrReplaceTempView("Shortcut_to_OMS_ORDER_REASON_CODE_2")
+
+# COMMAND ----------
+# DBTITLE 1, SQ_Shortcut_to_OMS_ORDER_REASON_CODE_3
+
+
+query_3 = f"""SELECT
+  OMS_ORDER_REASON_CODE_ID AS OMS_ORDER_REASON_CODE_ID,
+  OMS_ORDER_ID AS OMS_ORDER_ID,
+  OMS_ORDER_LINE_ID AS OMS_ORDER_LINE_ID,
+  OMS_REASON_TYPE AS OMS_REASON_TYPE,
+  OMS_REASON_CD AS OMS_REASON_CD,
+  USER_NAME AS USER_NAME,
+  REASON_CD_TSTMP AS REASON_CD_TSTMP,
+  UPDATE_TSTMP AS UPDATE_TSTMP,
+  LOAD_TSTMP AS LOAD_TSTMP,
+  monotonically_increasing_id() AS Monotonically_Increasing_Id
+FROM
+  Shortcut_to_OMS_ORDER_REASON_CODE_2"""
+
+df_3 = spark.sql(query_3)
+
+df_3.createOrReplaceTempView("SQ_Shortcut_to_OMS_ORDER_REASON_CODE_3")
+
+# COMMAND ----------
+# DBTITLE 1, JNR_OMS_Order_Reason_Code_4
+
+
+query_4 = f"""SELECT
+  DETAIL.ORDER_REASON_CODE_ID AS ORDER_REASON_CODE_ID,
+  DETAIL.ORDER_ID AS ORDER_ID,
+  DETAIL.ORDER_LINE_ID AS ORDER_LINE_ID,
+  DETAIL.REASON_TYPE AS REASON_TYPE,
+  DETAIL.REASON_CODE AS REASON_CODE,
+  DETAIL.USER_NAME AS USER_NAME,
+  DETAIL.REASON_CODE_DTTM AS REASON_CODE_DTTM,
+  MASTER.OMS_ORDER_REASON_CODE_ID AS lkp_OMS_ORDER_REASON_CODE_ID,
+  MASTER.OMS_ORDER_ID AS lkp_OMS_ORDER_ID,
+  MASTER.OMS_ORDER_LINE_ID AS lkp_OMS_ORDER_LINE_ID,
+  MASTER.OMS_REASON_TYPE AS lkp_OMS_REASON_TYPE,
+  MASTER.OMS_REASON_CD AS lkp_OMS_REASON_CD,
+  MASTER.USER_NAME AS lkp_USER_NAME,
+  MASTER.REASON_CD_TSTMP AS lkp_REASON_CD_TSTMP,
+  MASTER.LOAD_TSTMP AS lkp_LOAD_TSTMP,
+  DETAIL.Monotonically_Increasing_Id AS Monotonically_Increasing_Id
+FROM
+  SQ_Shortcut_to_OMS_ORDER_REASON_CODE_3 MASTER
+  RIGHT JOIN SQ_Shortcut_to_OMS_ORDER_REASON_CODE_PRE_1 DETAIL ON MASTER.OMS_ORDER_REASON_CODE_ID = DETAIL.ORDER_REASON_CODE_ID"""
+
+df_4 = spark.sql(query_4)
+
+df_4.createOrReplaceTempView("JNR_OMS_Order_Reason_Code_4")
+
+# COMMAND ----------
+# DBTITLE 1, FTR_UNCHANGED_REC_5
+
+
+query_5 = f"""SELECT
+  ORDER_REASON_CODE_ID AS ORDER_REASON_CODE_ID,
+  ORDER_ID AS ORDER_ID,
+  ORDER_LINE_ID AS ORDER_LINE_ID,
+  REASON_TYPE AS REASON_TYPE,
+  REASON_CODE AS REASON_CODE,
+  USER_NAME AS USER_NAME,
+  REASON_CODE_DTTM AS REASON_CODE_DTTM,
+  lkp_OMS_ORDER_REASON_CODE_ID AS lkp_OMS_ORDER_REASON_CODE_ID,
+  lkp_OMS_ORDER_ID AS lkp_OMS_ORDER_ID,
+  lkp_OMS_ORDER_LINE_ID AS lkp_OMS_ORDER_LINE_ID,
+  lkp_OMS_REASON_TYPE AS lkp_OMS_REASON_TYPE,
+  lkp_OMS_REASON_CD AS lkp_OMS_REASON_CD,
+  lkp_USER_NAME AS lkp_USER_NAME,
+  lkp_REASON_CD_TSTMP AS lkp_REASON_CD_TSTMP,
+  lkp_LOAD_TSTMP AS lkp_LOAD_TSTMP,
+  Monotonically_Increasing_Id AS Monotonically_Increasing_Id
+FROM
+  JNR_OMS_Order_Reason_Code_4
+WHERE
+  ISNULL(lkp_OMS_ORDER_REASON_CODE_ID)
+  OR (
+    NOT ISNULL(lkp_OMS_ORDER_REASON_CODE_ID)
+    AND (
+      IFF(ISNULL(ORDER_ID), TO_INTEGER(999999999), ORDER_ID) <> IFF(
+        ISNULL(lkp_OMS_ORDER_ID),
+        TO_INTEGER(999999999),
+        lkp_OMS_ORDER_ID
+      )
+      OR IFF(
+        ISNULL(ORDER_LINE_ID),
+        TO_INTEGER(999999999),
+        ORDER_LINE_ID
+      ) <> IFF(
+        ISNULL(lkp_OMS_ORDER_LINE_ID),
+        TO_INTEGER(999999999),
+        lkp_OMS_ORDER_LINE_ID
+      )
+      OR IFF (
+        ISNULL(LTRIM(RTRIM(REASON_TYPE))),
+        ' ',
+        LTRIM(RTRIM(REASON_TYPE))
+      ) <> IFF(
+        ISNULL(LTRIM(RTRIM(lkp_OMS_REASON_TYPE))),
+        ' ',
+        LTRIM(RTRIM(lkp_OMS_REASON_TYPE))
+      )
+      OR IFF (
+        ISNULL(LTRIM(RTRIM(REASON_CODE))),
+        ' ',
+        LTRIM(RTRIM(REASON_CODE))
+      ) <> IFF(
+        ISNULL(LTRIM(RTRIM(lkp_OMS_REASON_CD))),
+        ' ',
+        LTRIM(RTRIM(lkp_OMS_REASON_CD))
+      )
+      OR IFF (
+        ISNULL(LTRIM(RTRIM(USER_NAME))),
+        ' ',
+        LTRIM(RTRIM(USER_NAME))
+      ) <> IFF(
+        ISNULL(LTRIM(RTRIM(lkp_USER_NAME))),
+        ' ',
+        LTRIM(RTRIM(lkp_USER_NAME))
+      )
+      OR IFF(
+        ISNULL(REASON_CODE_DTTM),
+        To_DATE('12-31-9999', 'MM-DD-YYYY'),
+        REASON_CODE_DTTM
+      ) <> IFF(
+        ISNULL(lkp_REASON_CD_TSTMP),
+        To_DATE('12-31-9999', 'MM-DD-YYYY'),
+        lkp_REASON_CD_TSTMP
+      )
+    )
+  )"""
+
+df_5 = spark.sql(query_5)
+
+df_5.createOrReplaceTempView("FTR_UNCHANGED_REC_5")
+
+# COMMAND ----------
+# DBTITLE 1, EXP_VALID_FLAG_6
+
+
+query_6 = f"""SELECT
+  ORDER_REASON_CODE_ID AS ORDER_REASON_CODE_ID,
+  ORDER_ID AS ORDER_ID,
+  ORDER_LINE_ID AS ORDER_LINE_ID,
+  REASON_TYPE AS REASON_TYPE,
+  REASON_CODE AS REASON_CODE,
+  USER_NAME AS USER_NAME,
+  REASON_CODE_DTTM AS REASON_CODE_DTTM,
+  lkp_OMS_ORDER_REASON_CODE_ID AS lkp_OMS_ORDER_REASON_CODE_ID,
+  lkp_LOAD_TSTMP AS lkp_LOAD_TSTMP,
+  now() AS UPDATE_TSTMP,
+  IFF(ISNULL(lkp_LOAD_TSTMP), now(), lkp_LOAD_TSTMP) AS LOAD_TSTMP_exp,
+  IFF(ISNULL(lkp_OMS_ORDER_REASON_CODE_ID), 1, 2) AS o_UPD_VALIDATOR,
+  Monotonically_Increasing_Id AS Monotonically_Increasing_Id
+FROM
+  FTR_UNCHANGED_REC_5"""
+
+df_6 = spark.sql(query_6)
+
+df_6.createOrReplaceTempView("EXP_VALID_FLAG_6")
+
+# COMMAND ----------
+# DBTITLE 1, UPD_INS_UPD_7
+
+
+query_7 = f"""SELECT
+  ORDER_REASON_CODE_ID AS ORDER_REASON_CODE_ID,
+  ORDER_ID AS ORDER_ID,
+  ORDER_LINE_ID AS ORDER_LINE_ID,
+  REASON_TYPE AS REASON_TYPE,
+  REASON_CODE AS REASON_CODE,
+  USER_NAME AS USER_NAME,
+  REASON_CODE_DTTM AS REASON_CODE_DTTM,
+  UPDATE_TSTMP AS UPDATE_TSTMP,
+  LOAD_TSTMP_exp AS LOAD_TSTMP_exp,
+  o_UPD_VALIDATOR AS o_UPD_VALIDATOR,
+  Monotonically_Increasing_Id AS Monotonically_Increasing_Id,
+  DECODE(o_UPD_VALIDATOR, 1, 'DD_INSERT', 2, 'DD_UPDATE') AS UPDATE_STRATEGY_FLAG
+FROM
+  EXP_VALID_FLAG_6"""
+
+df_7 = spark.sql(query_7)
+
+df_7.createOrReplaceTempView("UPD_INS_UPD_7")
+
+# COMMAND ----------
+# DBTITLE 1, OMS_ORDER_REASON_CODE
+
+
+spark.sql("""MERGE INTO OMS_ORDER_REASON_CODE AS TARGET
+USING
+  UPD_INS_UPD_7 AS SOURCE ON TARGET.OMS_ORDER_REASON_CODE_ID = SOURCE.ORDER_REASON_CODE_ID
+  WHEN MATCHED
+  AND SOURCE.UPDATE_STRATEGY_FLAG = "DD_UPDATE" THEN
+UPDATE
+SET
+  TARGET.OMS_ORDER_REASON_CODE_ID = SOURCE.ORDER_REASON_CODE_ID,
+  TARGET.OMS_ORDER_ID = SOURCE.ORDER_ID,
+  TARGET.OMS_ORDER_LINE_ID = SOURCE.ORDER_LINE_ID,
+  TARGET.OMS_REASON_TYPE = SOURCE.REASON_TYPE,
+  TARGET.OMS_REASON_CD = SOURCE.REASON_CODE,
+  TARGET.USER_NAME = SOURCE.USER_NAME,
+  TARGET.REASON_CD_TSTMP = SOURCE.REASON_CODE_DTTM,
+  TARGET.UPDATE_TSTMP = SOURCE.UPDATE_TSTMP,
+  TARGET.LOAD_TSTMP = SOURCE.LOAD_TSTMP_exp
+  WHEN MATCHED
+  AND SOURCE.UPDATE_STRATEGY_FLAG = "DD_DELETE"
+  AND TARGET.OMS_ORDER_ID = SOURCE.ORDER_ID
+  AND TARGET.OMS_ORDER_LINE_ID = SOURCE.ORDER_LINE_ID
+  AND TARGET.OMS_REASON_TYPE = SOURCE.REASON_TYPE
+  AND TARGET.OMS_REASON_CD = SOURCE.REASON_CODE
+  AND TARGET.USER_NAME = SOURCE.USER_NAME
+  AND TARGET.REASON_CD_TSTMP = SOURCE.REASON_CODE_DTTM
+  AND TARGET.UPDATE_TSTMP = SOURCE.UPDATE_TSTMP
+  AND TARGET.LOAD_TSTMP = SOURCE.LOAD_TSTMP_exp THEN DELETE
+  WHEN NOT MATCHED
+  AND SOURCE.UPDATE_STRATEGY_FLAG = "DD_INSERT" THEN
+INSERT
+  (
+    TARGET.OMS_ORDER_REASON_CODE_ID,
+    TARGET.OMS_ORDER_ID,
+    TARGET.OMS_ORDER_LINE_ID,
+    TARGET.OMS_REASON_TYPE,
+    TARGET.OMS_REASON_CD,
+    TARGET.USER_NAME,
+    TARGET.REASON_CD_TSTMP,
+    TARGET.UPDATE_TSTMP,
+    TARGET.LOAD_TSTMP
+  )
+VALUES
+  (
+    SOURCE.ORDER_REASON_CODE_ID,
+    SOURCE.ORDER_ID,
+    SOURCE.ORDER_LINE_ID,
+    SOURCE.REASON_TYPE,
+    SOURCE.REASON_CODE,
+    SOURCE.USER_NAME,
+    SOURCE.REASON_CODE_DTTM,
+    SOURCE.UPDATE_TSTMP,
+    SOURCE.LOAD_TSTMP_exp
+  )""")
+
+# COMMAND ----------
+#Post session variable updation
+updateVariable(postVariableAssignment, variablesTableName, mainWorkflowId, parentName, "m_DDS_OMS_Order_Reason_Code")
+
+# COMMAND ----------
+#Update Mapping Variables in database.
+persistVariables(variablesTableName, "m_DDS_OMS_Order_Reason_Code", mainWorkflowId, parentName)
