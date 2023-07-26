@@ -158,7 +158,7 @@ df_1.createOrReplaceTempView("SQ_Shortcut_to_DAYS_1")
 
 
 query_2 = f"""SELECT
-  SETVARIABLE('Last_Run_Dt', TRUNC(SESSSTARTTIME)) AS SET_LAST_RUN_DT,
+  SETVARIABLE('Last_Run_Dt',  date_trunc('DAY', current_timestamp()) AS SET_LAST_RUN_DT,
   DAY_DT AS DAY_DT,
   Monotonically_Increasing_Id AS Monotonically_Increasing_Id
 FROM
