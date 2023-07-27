@@ -1,0 +1,375 @@
+# Databricks notebook source
+# MAGIC %run "./udf_informatica"
+
+# COMMAND ----------
+
+
+from pyspark.sql.types import *
+
+spark.sql("use DELTA_TRAINING")
+spark.sql("set spark.sql.legacy.timeParserPolicy = LEGACY")
+
+# COMMAND ----------
+%run ./MappingUtility
+
+# COMMAND ----------
+mainWorkflowId = dbutils.widgets.get("mainWorkflowId")
+mainWorkflowRunId = dbutils.widgets.get("mainWorkflowRunId")
+parentName = dbutils.widgets.get("parentName")
+preVariableAssignment = dbutils.widgets.get("preVariableAssignment")
+postVariableAssignment = dbutils.widgets.get("postVariableAssignment")
+truncTargetTableOptions = dbutils.widgets.get("truncTargetTableOptions")
+variablesTableName = dbutils.widgets.get("variablesTableName")
+
+# COMMAND ----------
+#Truncate Target Tables
+truncateTargetTables(truncTargetTableOptions)
+
+# COMMAND ----------
+#Pre presession variable updation
+updateVariable(preVariableAssignment, variablesTableName, mainWorkflowId, parentName, "m_Site_Hours_Day_Restore")
+
+# COMMAND ----------
+fetchAndCreateVariables(parentName,"m_Site_Hours_Day_Restore", variablesTableName, mainWorkflowId)
+
+# COMMAND ----------
+# DBTITLE 1, Shortcut_to_SITE_HOURS_DAY_PRE_0
+
+
+query_0 = f"""SELECT
+  DAY_DT AS DAY_DT,
+  LOCATION_NBR AS LOCATION_NBR,
+  LOCATION_TYPE_ID AS LOCATION_TYPE_ID,
+  BUSINESS_AREA AS BUSINESS_AREA,
+  OPEN_TSTMP AS OPEN_TSTMP,
+  CLOSE_TSTMP AS CLOSE_TSTMP,
+  IS_CLOSED AS IS_CLOSED,
+  LOAD_TSTMP AS LOAD_TSTMP
+FROM
+  SITE_HOURS_DAY_PRE"""
+
+df_0 = spark.sql(query_0)
+
+df_0.createOrReplaceTempView("Shortcut_to_SITE_HOURS_DAY_PRE_0")
+
+# COMMAND ----------
+# DBTITLE 1, SQ_SITE_HOURS_DAY_PRE_1
+
+
+query_1 = f"""SELECT
+  DAY_DT AS DAY_DT,
+  LOCATION_NBR AS LOCATION_NBR,
+  LOCATION_TYPE_ID AS LOCATION_TYPE_ID,
+  BUSINESS_AREA AS BUSINESS_AREA,
+  OPEN_TSTMP AS OPEN_TSTMP,
+  CLOSE_TSTMP AS CLOSE_TSTMP,
+  IS_CLOSED AS IS_CLOSED,
+  LOAD_TSTMP AS LOAD_TSTMP,
+  monotonically_increasing_id() AS Monotonically_Increasing_Id
+FROM
+  Shortcut_to_SITE_HOURS_DAY_PRE_0"""
+
+df_1 = spark.sql(query_1)
+
+df_1.createOrReplaceTempView("SQ_SITE_HOURS_DAY_PRE_1")
+
+# COMMAND ----------
+# DBTITLE 1, Lkp_Site_Profile_2
+
+
+query_2 = f"""SELECT
+  SPR.LOCATION_ID AS LOCATION_ID,
+  SPR.TIME_ZONE AS TIME_ZONE,
+  SPR.STORE_NBR AS STORE_NBR,
+  SSHDP1.Monotonically_Increasing_Id AS Monotonically_Increasing_Id
+FROM
+  SQ_SITE_HOURS_DAY_PRE_1 SSHDP1
+  LEFT JOIN SITE_PROFILE_RPT SPR ON SPR.LOCATION_NBR = SSHDP1.LOCATION_NBR
+  AND SPR.LOCATION_TYPE_ID = SSHDP1.LOCATION_TYPE_ID"""
+
+df_2 = spark.sql(query_2)
+
+df_2.createOrReplaceTempView("Lkp_Site_Profile_2")
+
+# COMMAND ----------
+# DBTITLE 1, Exp_Site_Hours_Day_Pre_3
+
+
+query_3 = f"""SELECT
+  SSHDP1.DAY_DT AS DAY_DT,
+  LSP2.LOCATION_ID AS LOCATION_ID,
+  SSHDP1.BUSINESS_AREA AS BUSINESS_AREA,
+  SSHDP1.LOCATION_TYPE_ID AS LOCATION_TYPE_ID,
+  LSP2.TIME_ZONE AS TIME_ZONE,
+  SSHDP1.OPEN_TSTMP AS OPEN_TSTMP,
+  SSHDP1.CLOSE_TSTMP AS CLOSE_TSTMP,
+  SSHDP1.IS_CLOSED AS IS_CLOSED,
+  LSP2.STORE_NBR AS STORE_NBR,
+  MD5(
+    TO_CHAR(SSHDP1.LOCATION_TYPE_ID) || LSP2.TIME_ZONE || TO_CHAR(SSHDP1.OPEN_TSTMP, 'YYYY-MM-DD HH24:MI:SS') || TO_CHAR(SSHDP1.CLOSE_TSTMP, 'YYYY-MM-DD HH24:MI:SS') || TO_CHAR(SSHDP1.IS_CLOSED) || TO_CHAR(LSP2.STORE_NBR)
+  ) AS _md5PRE,
+  SSHDP1.Monotonically_Increasing_Id AS Monotonically_Increasing_Id
+FROM
+  SQ_SITE_HOURS_DAY_PRE_1 SSHDP1
+  INNER JOIN Lkp_Site_Profile_2 LSP2 ON SSHDP1.Monotonically_Increasing_Id = LSP2.Monotonically_Increasing_Id"""
+
+df_3 = spark.sql(query_3)
+
+df_3.createOrReplaceTempView("Exp_Site_Hours_Day_Pre_3")
+
+# COMMAND ----------
+# DBTITLE 1, Shortcut_to_SITE_HOURS_DAY_4
+
+
+query_4 = f"""SELECT
+  DAY_DT AS DAY_DT,
+  LOCATION_ID AS LOCATION_ID,
+  BUSINESS_AREA AS BUSINESS_AREA,
+  LOCATION_TYPE_ID AS LOCATION_TYPE_ID,
+  STORE_NBR AS STORE_NBR,
+  CLOSE_FLAG AS CLOSE_FLAG,
+  TIME_ZONE AS TIME_ZONE,
+  OPEN_TSTMP AS OPEN_TSTMP,
+  CLOSE_TSTMP AS CLOSE_TSTMP,
+  UPDATE_TSTMP AS UPDATE_TSTMP,
+  LOAD_TSTMP AS LOAD_TSTMP
+FROM
+  SITE_HOURS_DAY"""
+
+df_4 = spark.sql(query_4)
+
+df_4.createOrReplaceTempView("Shortcut_to_SITE_HOURS_DAY_4")
+
+# COMMAND ----------
+# DBTITLE 1, SQ_SITE_HOURS_DAY_5
+
+
+query_5 = f"""SELECT
+  DAY_DT AS DAY_DT,
+  LOCATION_ID AS LOCATION_ID,
+  BUSINESS_AREA AS BUSINESS_AREA,
+  LOCATION_TYPE_ID AS LOCATION_TYPE_ID,
+  STORE_NBR AS STORE_NBR,
+  CLOSE_FLAG AS CLOSE_FLAG,
+  TIME_ZONE AS TIME_ZONE,
+  OPEN_TSTMP AS OPEN_TSTMP,
+  CLOSE_TSTMP AS CLOSE_TSTMP,
+  LOAD_TSTMP AS LOAD_TSTMP,
+  monotonically_increasing_id() AS Monotonically_Increasing_Id
+FROM
+  Shortcut_to_SITE_HOURS_DAY_4"""
+
+df_5 = spark.sql(query_5)
+
+df_5.createOrReplaceTempView("SQ_SITE_HOURS_DAY_5")
+
+# COMMAND ----------
+# DBTITLE 1, Exp_Site_Hours_Day_6
+
+
+query_6 = f"""SELECT
+  MD5(
+    TO_CHAR(LOCATION_TYPE_ID) || TIME_ZONE || TO_CHAR(OPEN_TSTMP, 'YYYY-MM-DD HH24:MI:SS') || TO_CHAR(CLOSE_TSTMP, 'YYYY-MM-DD HH24:MI:SS') || TO_CHAR(CLOSE_FLAG) || TO_CHAR(STORE_NBR)
+  ) AS _md5FINAL,
+  DAY_DT AS DAY_DT,
+  LOCATION_ID AS LOCATION_ID,
+  BUSINESS_AREA AS BUSINESS_AREA,
+  LOAD_TSTMP AS LOAD_TSTMP,
+  Monotonically_Increasing_Id AS Monotonically_Increasing_Id
+FROM
+  SQ_SITE_HOURS_DAY_5"""
+
+df_6 = spark.sql(query_6)
+
+df_6.createOrReplaceTempView("Exp_Site_Hours_Day_6")
+
+# COMMAND ----------
+# DBTITLE 1, Jnr_Site_Hours_Day_7
+
+
+query_7 = f"""SELECT
+  MASTER.DAY_DT AS DAY_DT,
+  MASTER.LOCATION_ID AS LOCATION_ID,
+  MASTER.BUSINESS_AREA AS BUSINESS_AREA,
+  MASTER.LOAD_TSTMP AS LOAD_TSTMP,
+  DETAIL.DAY_DT AS DAY_DT1,
+  DETAIL.LOCATION_ID AS LOCATION_ID1,
+  DETAIL.BUSINESS_AREA AS BUSINESS_AREA1,
+  DETAIL.LOCATION_TYPE_ID AS LOCATION_TYPE_ID,
+  DETAIL.TIME_ZONE AS TIME_ZONE,
+  DETAIL.OPEN_TSTMP AS OPEN_TSTMP,
+  DETAIL.CLOSE_TSTMP AS CLOSE_TSTMP,
+  DETAIL.IS_CLOSED AS IS_CLOSED,
+  DETAIL.STORE_NBR AS STORE_NBR,
+  MASTER._md5FINAL AS _md5FINAL,
+  DETAIL._md5PRE AS _md5PRE,
+  DETAIL.Monotonically_Increasing_Id AS Monotonically_Increasing_Id
+FROM
+  Exp_Site_Hours_Day_6 MASTER
+  RIGHT JOIN Exp_Site_Hours_Day_Pre_3 DETAIL ON MASTER.DAY_DT = DETAIL.DAY_DT
+  AND MASTER.LOCATION_ID = DETAIL.LOCATION_ID
+  AND MASTER.BUSINESS_AREA = DETAIL.BUSINESS_AREA"""
+
+df_7 = spark.sql(query_7)
+
+df_7.createOrReplaceTempView("Jnr_Site_Hours_Day_7")
+
+# COMMAND ----------
+# DBTITLE 1, Fil_Site_Hours_Day_8
+
+
+query_8 = f"""SELECT
+  DAY_DT1 AS DAY_DT1,
+  LOCATION_ID1 AS LOCATION_ID1,
+  BUSINESS_AREA1 AS BUSINESS_AREA1,
+  LOCATION_TYPE_ID AS LOCATION_TYPE_ID,
+  TIME_ZONE AS TIME_ZONE,
+  OPEN_TSTMP AS OPEN_TSTMP,
+  CLOSE_TSTMP AS CLOSE_TSTMP,
+  IS_CLOSED AS IS_CLOSED,
+  STORE_NBR AS STORE_NBR,
+  _md5FINAL AS _md5FINAL,
+  _md5PRE AS _md5PRE,
+  DAY_DT AS DAY_DT,
+  LOAD_TSTMP AS LOAD_TSTMP,
+  Monotonically_Increasing_Id AS Monotonically_Increasing_Id
+FROM
+  Jnr_Site_Hours_Day_7
+WHERE
+  (
+    NOT ISNULL(DAY_DT1)
+    AND ISNULL(DAY_DT)
+  )
+  OR (
+    NOT ISNULL(DAY_DT1)
+    AND NOT ISNULL(DAY_DT)
+    AND _md5FINAL <> _md5PRE
+  )"""
+
+df_8 = spark.sql(query_8)
+
+df_8.createOrReplaceTempView("Fil_Site_Hours_Day_8")
+
+# COMMAND ----------
+# DBTITLE 1, Exp_StoreHours_9
+
+
+query_9 = f"""SELECT
+  DAY_DT1 AS DAY_DT1,
+  LOCATION_ID1 AS LOCATION_ID1,
+  BUSINESS_AREA1 AS BUSINESS_AREA1,
+  LOCATION_TYPE_ID AS LOCATION_TYPE_ID,
+  STORE_NBR AS STORE_NBR,
+  TIME_ZONE AS TIME_ZONE,
+  OPEN_TSTMP AS OPEN_TSTMP,
+  CLOSE_TSTMP AS CLOSE_TSTMP,
+  IS_CLOSED AS IS_CLOSED,
+  now() AS UPDATE_TSTMP,
+  IFF(ISNULL(DAY_DT), now(), LOAD_TSTMP) AS LOAD_TSTMP,
+  IFF(ISNULL(DAY_DT), 'DD_INSERT', 'DD_UPDATE') AS LoadStrategy,
+  Monotonically_Increasing_Id AS Monotonically_Increasing_Id
+FROM
+  Fil_Site_Hours_Day_8"""
+
+df_9 = spark.sql(query_9)
+
+df_9.createOrReplaceTempView("Exp_StoreHours_9")
+
+# COMMAND ----------
+# DBTITLE 1, Upd_Site_Hours_Day_10
+
+
+query_10 = f"""SELECT
+  DAY_DT1 AS DAY_DT,
+  LOCATION_ID1 AS LOCATION_ID,
+  BUSINESS_AREA1 AS BUSINESS_AREA,
+  LOCATION_TYPE_ID AS LOCATION_TYPE_ID,
+  STORE_NBR AS STORE_NBR,
+  TIME_ZONE AS TIME_ZONE,
+  OPEN_TSTMP AS OPEN_TSTMP,
+  CLOSE_TSTMP AS CLOSE_TSTMP,
+  IS_CLOSED AS IS_CLOSED,
+  UPDATE_TSTMP AS UPDATE_TSTMP,
+  LOAD_TSTMP AS LOAD_TSTMP,
+  LoadStrategy AS LoadStrategy,
+  Monotonically_Increasing_Id AS Monotonically_Increasing_Id,
+  LoadStrategy AS UPDATE_STRATEGY_FLAG
+FROM
+  Exp_StoreHours_9"""
+
+df_10 = spark.sql(query_10)
+
+df_10.createOrReplaceTempView("Upd_Site_Hours_Day_10")
+
+# COMMAND ----------
+# DBTITLE 1, SITE_HOURS_DAY
+
+
+spark.sql("""MERGE INTO SITE_HOURS_DAY AS TARGET
+USING
+  Upd_Site_Hours_Day_10 AS SOURCE ON TARGET.LOCATION_ID = SOURCE.LOCATION_ID
+  AND TARGET.BUSINESS_AREA = SOURCE.BUSINESS_AREA
+  AND TARGET.DAY_DT = SOURCE.DAY_DT
+  WHEN MATCHED
+  AND SOURCE.UPDATE_STRATEGY_FLAG = "DD_UPDATE" THEN
+UPDATE
+SET
+  TARGET.DAY_DT = SOURCE.DAY_DT,
+  TARGET.LOCATION_ID = SOURCE.LOCATION_ID,
+  TARGET.BUSINESS_AREA = SOURCE.BUSINESS_AREA,
+  TARGET.LOCATION_TYPE_ID = SOURCE.LOCATION_TYPE_ID,
+  TARGET.STORE_NBR = SOURCE.STORE_NBR,
+  TARGET.CLOSE_FLAG = SOURCE.IS_CLOSED,
+  TARGET.TIME_ZONE = SOURCE.TIME_ZONE,
+  TARGET.OPEN_TSTMP = SOURCE.OPEN_TSTMP,
+  TARGET.CLOSE_TSTMP = SOURCE.CLOSE_TSTMP,
+  TARGET.UPDATE_TSTMP = SOURCE.UPDATE_TSTMP,
+  TARGET.LOAD_TSTMP = SOURCE.LOAD_TSTMP
+  WHEN MATCHED
+  AND SOURCE.UPDATE_STRATEGY_FLAG = "DD_DELETE"
+  AND TARGET.LOCATION_TYPE_ID = SOURCE.LOCATION_TYPE_ID
+  AND TARGET.STORE_NBR = SOURCE.STORE_NBR
+  AND TARGET.CLOSE_FLAG = SOURCE.IS_CLOSED
+  AND TARGET.TIME_ZONE = SOURCE.TIME_ZONE
+  AND TARGET.OPEN_TSTMP = SOURCE.OPEN_TSTMP
+  AND TARGET.CLOSE_TSTMP = SOURCE.CLOSE_TSTMP
+  AND TARGET.UPDATE_TSTMP = SOURCE.UPDATE_TSTMP
+  AND TARGET.LOAD_TSTMP = SOURCE.LOAD_TSTMP THEN DELETE
+  WHEN NOT MATCHED
+  AND SOURCE.UPDATE_STRATEGY_FLAG = "DD_INSERT" THEN
+INSERT
+  (
+    TARGET.DAY_DT,
+    TARGET.LOCATION_ID,
+    TARGET.BUSINESS_AREA,
+    TARGET.LOCATION_TYPE_ID,
+    TARGET.STORE_NBR,
+    TARGET.CLOSE_FLAG,
+    TARGET.TIME_ZONE,
+    TARGET.OPEN_TSTMP,
+    TARGET.CLOSE_TSTMP,
+    TARGET.UPDATE_TSTMP,
+    TARGET.LOAD_TSTMP
+  )
+VALUES
+  (
+    SOURCE.DAY_DT,
+    SOURCE.LOCATION_ID,
+    SOURCE.BUSINESS_AREA,
+    SOURCE.LOCATION_TYPE_ID,
+    SOURCE.STORE_NBR,
+    SOURCE.IS_CLOSED,
+    SOURCE.TIME_ZONE,
+    SOURCE.OPEN_TSTMP,
+    SOURCE.CLOSE_TSTMP,
+    SOURCE.UPDATE_TSTMP,
+    SOURCE.LOAD_TSTMP
+  )""")
+
+# COMMAND ----------
+#Post session variable updation
+updateVariable(postVariableAssignment, variablesTableName, mainWorkflowId, parentName, "m_Site_Hours_Day_Restore")
+
+# COMMAND ----------
+#Update Mapping Variables in database.
+persistVariables(variablesTableName, "m_Site_Hours_Day_Restore", mainWorkflowId, parentName)

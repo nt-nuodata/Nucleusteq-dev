@@ -1,0 +1,91 @@
+# Databricks notebook source
+# MAGIC %run "./udf_informatica"
+
+# COMMAND ----------
+
+
+from pyspark.sql.types import *
+
+spark.sql("use DELTA_TRAINING")
+spark.sql("set spark.sql.legacy.timeParserPolicy = LEGACY")
+
+# COMMAND ----------
+%run ./MappingUtility
+
+# COMMAND ----------
+mainWorkflowId = dbutils.widgets.get("mainWorkflowId")
+mainWorkflowRunId = dbutils.widgets.get("mainWorkflowRunId")
+parentName = dbutils.widgets.get("parentName")
+preVariableAssignment = dbutils.widgets.get("preVariableAssignment")
+postVariableAssignment = dbutils.widgets.get("postVariableAssignment")
+truncTargetTableOptions = dbutils.widgets.get("truncTargetTableOptions")
+variablesTableName = dbutils.widgets.get("variablesTableName")
+
+# COMMAND ----------
+#Truncate Target Tables
+truncateTargetTables(truncTargetTableOptions)
+
+# COMMAND ----------
+#Pre presession variable updation
+updateVariable(preVariableAssignment, variablesTableName, mainWorkflowId, parentName, "m_Nz2Ora_sap_class")
+
+# COMMAND ----------
+fetchAndCreateVariables(parentName,"m_Nz2Ora_sap_class", variablesTableName, mainWorkflowId)
+
+# COMMAND ----------
+# DBTITLE 1, TRUNC_PROD_TABLES
+
+
+Stored Procedure Transformation not supported
+
+# COMMAND ----------
+# DBTITLE 1, Shortcut_To_SAP_CLASS_0
+
+
+query_0 = f"""SELECT
+  SAP_CLASS_ID AS SAP_CLASS_ID,
+  SAP_CLASS_DESC AS SAP_CLASS_DESC,
+  SAP_DEPT_ID AS SAP_DEPT_ID
+FROM
+  SAP_CLASS"""
+
+df_0 = spark.sql(query_0)
+
+df_0.createOrReplaceTempView("Shortcut_To_SAP_CLASS_0")
+
+# COMMAND ----------
+# DBTITLE 1, SQ_Shortcut_to_SAP_CLASS_1
+
+
+query_1 = f"""SELECT
+  SAP_CLASS_ID AS SAP_CLASS_ID,
+  SAP_CLASS_DESC AS SAP_CLASS_DESC,
+  SAP_DEPT_ID AS SAP_DEPT_ID,
+  monotonically_increasing_id() AS Monotonically_Increasing_Id
+FROM
+  Shortcut_To_SAP_CLASS_0"""
+
+df_1 = spark.sql(query_1)
+
+df_1.createOrReplaceTempView("SQ_Shortcut_to_SAP_CLASS_1")
+
+# COMMAND ----------
+# DBTITLE 1, SAP_CLASS_Ora
+
+
+spark.sql("""INSERT INTO
+  SAP_CLASS_Ora
+SELECT
+  SAP_CLASS_ID AS SAP_CLASS_ID,
+  SAP_CLASS_DESC AS SAP_CLASS_DESC,
+  SAP_DEPT_ID AS SAP_DEPT_ID
+FROM
+  SQ_Shortcut_to_SAP_CLASS_1""")
+
+# COMMAND ----------
+#Post session variable updation
+updateVariable(postVariableAssignment, variablesTableName, mainWorkflowId, parentName, "m_Nz2Ora_sap_class")
+
+# COMMAND ----------
+#Update Mapping Variables in database.
+persistVariables(variablesTableName, "m_Nz2Ora_sap_class", mainWorkflowId, parentName)
