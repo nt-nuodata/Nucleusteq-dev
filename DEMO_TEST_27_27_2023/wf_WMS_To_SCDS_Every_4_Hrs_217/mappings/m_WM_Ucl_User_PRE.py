@@ -158,10 +158,10 @@ FROM
   Shortcut_to_UCL_USER_0
 WHERE
   {Initial_Load} (
-    trunc(Shortcut_to_UCL_USER_0.CREATED_DTTM) >= trunc(to_date('{Prev_Run_Dt}', 'MM/DD/YYYY HH24:MI:SS')) - 1
+    date_trunc('DAY', Shortcut_to_UCL_USER_0.CREATED_DTTM) >= date_trunc('DAY', to_date(DATE_FORMAT(CAST('{Prev_Run_Dt}' AS timestamp),'MM/dd/yyyy HH:mm:ss'), 'MM/dd/yyyy HH:mm:ss') ) - INTERVAL '1' DAY
   )
   OR (
-    trunc(Shortcut_to_UCL_USER_0.LAST_UPDATED_DTTM) >= trunc(to_date('{Prev_Run_Dt}', 'MM/DD/YYYY HH24:MI:SS')) - 1
+    date_trunc('DAY', Shortcut_to_UCL_USER_0.LAST_UPDATED_DTTM) >= date_trunc('DAY', to_date(DATE_FORMAT(CAST('{Prev_Run_Dt}' AS timestamp),'MM/dd/yyyy HH:mm:ss'), 'MM/dd/yyyy HH:mm:ss') ) - INTERVAL '1' DAY
   )
   AND 1 = 1"""
 
@@ -227,7 +227,7 @@ query_2 = f"""SELECT
   COPY_FROM_USER AS COPY_FROM_USER,
   EXTERNAL_USER_ID AS EXTERNAL_USER_ID,
   SECURITY_POLICY_GROUP_ID AS SECURITY_POLICY_GROUP_ID,
-  SYSTIMESTAMP() AS LOAD_TSTMP_EXP,
+  current_timestamp() AS LOAD_TSTMP_EXP,
   Monotonically_Increasing_Id AS Monotonically_Increasing_Id
 FROM
   SQ_Shortcut_to_UCL_USER_1"""

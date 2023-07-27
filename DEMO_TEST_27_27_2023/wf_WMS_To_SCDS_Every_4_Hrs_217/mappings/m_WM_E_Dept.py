@@ -426,38 +426,38 @@ WHERE
     AND (
       IFF (
         ISNULL(CREATE_DATE_TIME),
-        TO_DATE('01/01/1900', 'MM/DD/YYYY'),
+        TO_DATE('01/01/1900', 'MM/dd/yyyy'),
         CREATE_DATE_TIME
       ) != IFF (
         ISNULL(in_WM_CREATE_TSTMP),
-        TO_DATE('01/01/1900', 'MM/DD/YYYY'),
+        TO_DATE('01/01/1900', 'MM/dd/yyyy'),
         in_WM_CREATE_TSTMP
       )
       OR IFF (
         ISNULL(MOD_DATE_TIME),
-        TO_DATE('01/01/1900', 'MM/DD/YYYY'),
+        TO_DATE('01/01/1900', 'MM/dd/yyyy'),
         MOD_DATE_TIME
       ) != IFF (
         ISNULL(in_WM_MOD_TSTMP),
-        TO_DATE('01/01/1900', 'MM/DD/YYYY'),
+        TO_DATE('01/01/1900', 'MM/dd/yyyy'),
         in_WM_MOD_TSTMP
       )
       OR IFF (
         ISNULL(CREATED_DTTM),
-        TO_DATE('01/01/1900', 'MM/DD/YYYY'),
+        TO_DATE('01/01/1900', 'MM/dd/yyyy'),
         CREATED_DTTM
       ) != IFF (
         ISNULL(in_WM_CREATED_TSTMP),
-        TO_DATE('01/01/1900', 'MM/DD/YYYY'),
+        TO_DATE('01/01/1900', 'MM/dd/yyyy'),
         in_WM_CREATED_TSTMP
       )
       OR IFF (
         ISNULL(LAST_UPDATED_DTTM),
-        TO_DATE('01/01/1900', 'MM/DD/YYYY'),
+        TO_DATE('01/01/1900', 'MM/dd/yyyy'),
         LAST_UPDATED_DTTM
       ) != IFF (
         ISNULL(in_WM_LAST_UPDATED_TSTMP),
-        TO_DATE('01/01/1900', 'MM/DD/YYYY'),
+        TO_DATE('01/01/1900', 'MM/dd/yyyy'),
         in_WM_LAST_UPDATED_TSTMP
       )
     )

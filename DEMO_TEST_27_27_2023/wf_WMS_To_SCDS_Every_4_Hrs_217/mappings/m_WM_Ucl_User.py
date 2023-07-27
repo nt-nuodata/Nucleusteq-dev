@@ -667,20 +667,20 @@ WHERE
     AND (
       IFF (
         ISNULL(CREATED_DTTM),
-        TO_DATE('01/01/1900', 'MM/DD/YYYY'),
+        TO_DATE('01/01/1900', 'MM/dd/yyyy'),
         CREATED_DTTM
       ) != IFF (
         ISNULL(i_WM_CREATED_TSTMP),
-        TO_DATE('01/01/1900', 'MM/DD/YYYY'),
+        TO_DATE('01/01/1900', 'MM/dd/yyyy'),
         i_WM_CREATED_TSTMP
       )
       OR IFF (
         ISNULL(LAST_UPDATED_DTTM),
-        TO_DATE('01/01/1900', 'MM/DD/YYYY'),
+        TO_DATE('01/01/1900', 'MM/dd/yyyy'),
         LAST_UPDATED_DTTM
       ) != IFF (
         ISNULL(i_WM_LAST_UPDATED_TSTMP),
-        TO_DATE('01/01/1900', 'MM/DD/YYYY'),
+        TO_DATE('01/01/1900', 'MM/dd/yyyy'),
         i_WM_LAST_UPDATED_TSTMP
       )
     )

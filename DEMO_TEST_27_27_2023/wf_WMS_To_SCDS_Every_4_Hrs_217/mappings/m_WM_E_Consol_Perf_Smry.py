@@ -892,20 +892,20 @@ WHERE
     AND (
       IFF (
         ISNULL(CREATE_DATE_TIME),
-        TO_DATE('01/01/1900', 'MM/DD/YYYY'),
+        TO_DATE('01/01/1900', 'MM/dd/yyyy'),
         CREATE_DATE_TIME
       ) != IFF (
         ISNULL(in_WM_CREATE_TSTMP),
-        TO_DATE('01/01/1900', 'MM/DD/YYYY'),
+        TO_DATE('01/01/1900', 'MM/dd/yyyy'),
         in_WM_CREATE_TSTMP
       )
       OR IFF (
         ISNULL(MOD_DATE_TIME),
-        TO_DATE('01/01/1900', 'MM/DD/YYYY'),
+        TO_DATE('01/01/1900', 'MM/dd/yyyy'),
         MOD_DATE_TIME
       ) != IFF (
         ISNULL(in_WM_MOD_TSTMP),
-        TO_DATE('01/01/1900', 'MM/DD/YYYY'),
+        TO_DATE('01/01/1900', 'MM/dd/yyyy'),
         in_WM_MOD_TSTMP
       )
     )
