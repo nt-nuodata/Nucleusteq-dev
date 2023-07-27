@@ -1,0 +1,295 @@
+# Databricks notebook source
+# MAGIC %run "./udf_informatica"
+
+# COMMAND ----------
+
+
+from pyspark.sql.types import *
+
+spark.sql("use DELTA_TRAINING")
+spark.sql("set spark.sql.legacy.timeParserPolicy = LEGACY")
+
+# COMMAND ----------
+%run ./MappingUtility
+
+# COMMAND ----------
+mainWorkflowId = dbutils.widgets.get("mainWorkflowId")
+mainWorkflowRunId = dbutils.widgets.get("mainWorkflowRunId")
+parentName = dbutils.widgets.get("parentName")
+preVariableAssignment = dbutils.widgets.get("preVariableAssignment")
+postVariableAssignment = dbutils.widgets.get("postVariableAssignment")
+truncTargetTableOptions = dbutils.widgets.get("truncTargetTableOptions")
+variablesTableName = dbutils.widgets.get("variablesTableName")
+
+# COMMAND ----------
+#Truncate Target Tables
+truncateTargetTables(truncTargetTableOptions)
+
+# COMMAND ----------
+#Pre presession variable updation
+updateVariable(preVariableAssignment, variablesTableName, mainWorkflowId, parentName, "m_currency")
+
+# COMMAND ----------
+fetchAndCreateVariables(parentName,"m_currency", variablesTableName, mainWorkflowId)
+
+# COMMAND ----------
+# DBTITLE 1, Shortcut_To_CURRENCY_0
+
+
+query_0 = f"""SELECT
+  CURRENCY_ID AS CURRENCY_ID,
+  DATE_RATE_START AS DATE_RATE_START,
+  CURRENCY_TYPE AS CURRENCY_TYPE,
+  DATE_RATE_ENDED AS DATE_RATE_ENDED,
+  EXCHANGE_RATE_PCNT AS EXCHANGE_RATE_PCNT,
+  RATIO_TO AS RATIO_TO,
+  RATIO_FROM AS RATIO_FROM,
+  STORE_CTRY_ABBR AS STORE_CTRY_ABBR,
+  CURRENCY_NBR AS CURRENCY_NBR
+FROM
+  CURRENCY"""
+
+df_0 = spark.sql(query_0)
+
+df_0.createOrReplaceTempView("Shortcut_To_CURRENCY_0")
+
+# COMMAND ----------
+# DBTITLE 1, SQ_Shortcut_To_CURRENCY_1
+
+
+query_1 = f"""SELECT
+  CURRENCY_ID AS CURRENCY_ID,
+  DATE_RATE_ENDED AS DATE_RATE_ENDED,
+  DATE_RATE_START AS DATE_RATE_START,
+  CURRENCY_TYPE AS CURRENCY_TYPE,
+  EXCHANGE_RATE_PCNT AS EXCHANGE_RATE_PCNT,
+  RATIO_FROM AS RATIO_FROM,
+  RATIO_TO AS RATIO_TO,
+  STORE_CTRY_ABBR AS STORE_CTRY_ABBR,
+  monotonically_increasing_id() AS Monotonically_Increasing_Id
+FROM
+  Shortcut_To_CURRENCY_0"""
+
+df_1 = spark.sql(query_1)
+
+df_1.createOrReplaceTempView("SQ_Shortcut_To_CURRENCY_1")
+
+# COMMAND ----------
+# DBTITLE 1, FIL_NULLS_2
+
+
+query_2 = f"""SELECT
+  CURRENCY_ID AS CURRENCY_ID,
+  DATE_RATE_ENDED AS DATE_RATE_ENDED,
+  DATE_RATE_START AS DATE_RATE_START,
+  CURRENCY_TYPE AS CURRENCY_TYPE,
+  EXCHANGE_RATE_PCNT AS EXCHANGE_RATE_PCNT,
+  RATIO_FROM AS RATIO_FROM,
+  RATIO_TO AS RATIO_TO,
+  STORE_CTRY_ABBR AS STORE_CTRY_ABBR,
+  Monotonically_Increasing_Id AS Monotonically_Increasing_Id
+FROM
+  SQ_Shortcut_To_CURRENCY_1
+WHERE
+  IFF (
+    ISNULL(CURRENCY_ID)
+    OR IS_SPACES(CURRENCY_ID),
+    FALSE,
+    TRUE
+  )"""
+
+df_2 = spark.sql(query_2)
+
+df_2.createOrReplaceTempView("FIL_NULLS_2")
+
+# COMMAND ----------
+# DBTITLE 1, EXP_DATE_RATE_START_FORMAT_3
+
+
+query_3 = f"""SELECT
+  CURRENCY_ID AS CURRENCY_ID,
+  DATE_RATE_ENDED AS DATE_RATE_ENDED,
+  DATE_RATE_START AS DATE_RATE_START,
+  TO_DATE(DATE_RATE_START, 'YYYYMMDD') AS DATE_RATE_START1,
+  CURRENCY_TYPE AS CURRENCY_TYPE,
+  EXCHANGE_RATE_PCNT AS EXCHANGE_RATE_PCNT,
+  RATIO_FROM AS RATIO_FROM,
+  RATIO_TO AS RATIO_TO,
+  STORE_CTRY_ABBR AS STORE_CTRY_ABBR,
+  Monotonically_Increasing_Id AS Monotonically_Increasing_Id
+FROM
+  FIL_NULLS_2"""
+
+df_3 = spark.sql(query_3)
+
+df_3.createOrReplaceTempView("EXP_DATE_RATE_START_FORMAT_3")
+
+# COMMAND ----------
+# DBTITLE 1, LKP_CURRENCY_4
+
+
+query_4 = f"""SELECT
+  EDRSF3.CURRENCY_ID AS IN_CURRENCY_ID,
+  C.CURRENCY_ID AS CURRENCY_ID,
+  EDRSF3.DATE_RATE_START1 AS IN_DATE_RATE_START,
+  C.DATE_RATE_START AS DATE_RATE_START,
+  C.CURRENCY_TYPE AS CURRENCY_TYPE,
+  C.DATE_RATE_ENDED AS DATE_RATE_ENDED,
+  C.EXCHANGE_RATE_PCNT AS EXCHANGE_RATE_PCNT,
+  C.RATIO_TO AS RATIO_TO,
+  C.RATIO_FROM AS RATIO_FROM,
+  C.STORE_CTRY_ABBR AS STORE_CTRY_ABBR,
+  EDRSF3.Monotonically_Increasing_Id AS Monotonically_Increasing_Id
+FROM
+  EXP_DATE_RATE_START_FORMAT_3 EDRSF3
+  LEFT JOIN CURRENCY C ON C.CURRENCY_ID = EDRSF3.C.CURRENCY_ID
+  AND C.DATE_RATE_START = EDRSF3.DATE_RATE_START1"""
+
+df_4 = spark.sql(query_4)
+
+df_4.createOrReplaceTempView("LKP_CURRENCY_4")
+
+# COMMAND ----------
+# DBTITLE 1, EXP_DetectChanges_5
+
+
+query_5 = f"""SELECT
+  CURRENCY_ID AS L_CURRENCY_ID,
+  DATE_RATE_START AS L_DATE_RATE_START,
+  NULL AS DATE_RATE_START1,
+  IFF(
+    ISNULL(CURRENCY_ID)
+    and ISNULL(DATE_RATE_START),
+    TRUE,
+    FALSE
+  ) AS NewFlag,
+  IFF(NOT ISNULL(CURRENCY_ID), TRUE, FALSE) AS ChangedFlag,
+  Monotonically_Increasing_Id AS Monotonically_Increasing_Id
+FROM
+  LKP_CURRENCY_4"""
+
+df_5 = spark.sql(query_5)
+
+df_5.createOrReplaceTempView("EXP_DetectChanges_5")
+
+# COMMAND ----------
+# DBTITLE 1, EXP_Convert_6
+
+
+query_6 = f"""SELECT
+  EDRSF3.CURRENCY_ID AS CURRENCY_ID,
+  TO_DATE(EDRSF3.DATE_RATE_ENDED, 'YYYYMMDD') AS V_DATE_RATE_ENDED,
+  TO_DATE(EDRSF3.DATE_RATE_START, 'YYYYMMDD') AS V_DATE_RATE_START,
+  EDRSF3.CURRENCY_TYPE AS CURRENCY_TYPE,
+  EDRSF3.EXCHANGE_RATE_PCNT AS EXCHANGE_RATE_PCNT,
+  EDRSF3.RATIO_FROM AS RATIO_FROM,
+  EDRSF3.RATIO_TO AS RATIO_TO,
+  EDRSF3.STORE_CTRY_ABBR AS STORE_CTRY_ABBR,
+  IFF(EDRSF3.CURRENCY_ID = 'USD', 0, 1) AS CURRENCY_NBR,
+  ED5.NewFlag AS NewFlag,
+  ED5.ChangedFlag AS ChangedFlag,
+  ED5.Monotonically_Increasing_Id AS Monotonically_Increasing_Id
+FROM
+  EXP_DetectChanges_5 ED5
+  INNER JOIN EXP_DATE_RATE_START_FORMAT_3 EDRSF3 ON ED5.Monotonically_Increasing_Id = EDRSF3.Monotonically_Increasing_Id"""
+
+df_6 = spark.sql(query_6)
+
+df_6.createOrReplaceTempView("EXP_Convert_6")
+
+# COMMAND ----------
+# DBTITLE 1, UPD_Ins_Upd_7
+
+
+query_7 = f"""SELECT
+  CURRENCY_ID AS CURRENCY_ID,
+  V_DATE_RATE_START AS V_DATE_RATE_START,
+  CURRENCY_TYPE AS CURRENCY_TYPE,
+  V_DATE_RATE_ENDED AS V_DATE_RATE_ENDED,
+  EXCHANGE_RATE_PCNT AS EXCHANGE_RATE_PCNT,
+  RATIO_TO AS RATIO_TO,
+  RATIO_FROM AS RATIO_FROM,
+  STORE_CTRY_ABBR AS STORE_CTRY_ABBR,
+  CURRENCY_NBR AS CURRENCY_NBR,
+  NewFlag AS NewFlag,
+  ChangedFlag AS ChangedFlag,
+  Monotonically_Increasing_Id AS Monotonically_Increasing_Id,
+  DECODE(
+    TRUE,
+    NewFlag = TRUE,
+    'DD_INSERT',
+    ChangedFlag = TRUE,
+    'DD_UPDATE',
+    'DD_REJECT'
+  ) AS UPDATE_STRATEGY_FLAG
+FROM
+  EXP_Convert_6"""
+
+df_7 = spark.sql(query_7)
+
+df_7.createOrReplaceTempView("UPD_Ins_Upd_7")
+
+# COMMAND ----------
+# DBTITLE 1, CURRENCY
+
+
+spark.sql("""MERGE INTO CURRENCY AS TARGET
+USING
+  UPD_Ins_Upd_7 AS SOURCE ON TARGET.CURRENCY_ID = SOURCE.CURRENCY_ID
+  AND TARGET.CURRENCY_NBR = SOURCE.CURRENCY_NBR
+  AND TARGET.CURRENCY_TYPE = SOURCE.CURRENCY_TYPE
+  AND TARGET.DATE_RATE_START = SOURCE.V_DATE_RATE_START
+  WHEN MATCHED
+  AND SOURCE.UPDATE_STRATEGY_FLAG = "DD_UPDATE" THEN
+UPDATE
+SET
+  TARGET.CURRENCY_ID = SOURCE.CURRENCY_ID,
+  TARGET.DATE_RATE_START = SOURCE.V_DATE_RATE_START,
+  TARGET.CURRENCY_TYPE = SOURCE.CURRENCY_TYPE,
+  TARGET.DATE_RATE_ENDED = SOURCE.V_DATE_RATE_ENDED,
+  TARGET.EXCHANGE_RATE_PCNT = SOURCE.EXCHANGE_RATE_PCNT,
+  TARGET.RATIO_TO = SOURCE.RATIO_TO,
+  TARGET.RATIO_FROM = SOURCE.RATIO_FROM,
+  TARGET.STORE_CTRY_ABBR = SOURCE.STORE_CTRY_ABBR,
+  TARGET.CURRENCY_NBR = SOURCE.CURRENCY_NBR
+  WHEN MATCHED
+  AND SOURCE.UPDATE_STRATEGY_FLAG = "DD_DELETE"
+  AND TARGET.DATE_RATE_ENDED = SOURCE.V_DATE_RATE_ENDED
+  AND TARGET.EXCHANGE_RATE_PCNT = SOURCE.EXCHANGE_RATE_PCNT
+  AND TARGET.RATIO_TO = SOURCE.RATIO_TO
+  AND TARGET.RATIO_FROM = SOURCE.RATIO_FROM
+  AND TARGET.STORE_CTRY_ABBR = SOURCE.STORE_CTRY_ABBR THEN DELETE
+  WHEN NOT MATCHED
+  AND SOURCE.UPDATE_STRATEGY_FLAG = "DD_INSERT" THEN
+INSERT
+  (
+    TARGET.CURRENCY_ID,
+    TARGET.DATE_RATE_START,
+    TARGET.CURRENCY_TYPE,
+    TARGET.DATE_RATE_ENDED,
+    TARGET.EXCHANGE_RATE_PCNT,
+    TARGET.RATIO_TO,
+    TARGET.RATIO_FROM,
+    TARGET.STORE_CTRY_ABBR,
+    TARGET.CURRENCY_NBR
+  )
+VALUES
+  (
+    SOURCE.CURRENCY_ID,
+    SOURCE.V_DATE_RATE_START,
+    SOURCE.CURRENCY_TYPE,
+    SOURCE.V_DATE_RATE_ENDED,
+    SOURCE.EXCHANGE_RATE_PCNT,
+    SOURCE.RATIO_TO,
+    SOURCE.RATIO_FROM,
+    SOURCE.STORE_CTRY_ABBR,
+    SOURCE.CURRENCY_NBR
+  )""")
+
+# COMMAND ----------
+#Post session variable updation
+updateVariable(postVariableAssignment, variablesTableName, mainWorkflowId, parentName, "m_currency")
+
+# COMMAND ----------
+#Update Mapping Variables in database.
+persistVariables(variablesTableName, "m_currency", mainWorkflowId, parentName)
