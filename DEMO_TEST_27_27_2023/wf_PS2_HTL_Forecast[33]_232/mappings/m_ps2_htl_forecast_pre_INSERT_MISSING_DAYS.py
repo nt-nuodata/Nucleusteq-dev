@@ -1,0 +1,319 @@
+# Databricks notebook source
+# MAGIC %run "./udf_informatica"
+
+# COMMAND ----------
+
+
+from pyspark.sql.types import *
+
+spark.sql("use DELTA_TRAINING")
+spark.sql("set spark.sql.legacy.timeParserPolicy = LEGACY")
+
+# COMMAND ----------
+%run ./MappingUtility
+
+# COMMAND ----------
+mainWorkflowId = dbutils.widgets.get("mainWorkflowId")
+mainWorkflowRunId = dbutils.widgets.get("mainWorkflowRunId")
+parentName = dbutils.widgets.get("parentName")
+preVariableAssignment = dbutils.widgets.get("preVariableAssignment")
+postVariableAssignment = dbutils.widgets.get("postVariableAssignment")
+truncTargetTableOptions = dbutils.widgets.get("truncTargetTableOptions")
+variablesTableName = dbutils.widgets.get("variablesTableName")
+
+# COMMAND ----------
+#Truncate Target Tables
+truncateTargetTables(truncTargetTableOptions)
+
+# COMMAND ----------
+#Pre presession variable updation
+updateVariable(preVariableAssignment, variablesTableName, mainWorkflowId, parentName, "m_ps2_htl_forecast_pre_INSERT_MISSING_DAYS")
+
+# COMMAND ----------
+fetchAndCreateVariables(parentName,"m_ps2_htl_forecast_pre_INSERT_MISSING_DAYS", variablesTableName, mainWorkflowId)
+
+# COMMAND ----------
+# DBTITLE 1, Shortcut_to_PS2_HTL_FORECAST_PRE1_0
+
+
+query_0 = f"""SELECT
+  FORECAST_DAY_DT AS FORECAST_DAY_DT,
+  LOCATION_ID AS LOCATION_ID,
+  WEEK_DT AS WEEK_DT,
+  STORE_NBR AS STORE_NBR,
+  DAY_OF_WK_NBR AS DAY_OF_WK_NBR,
+  OVERNIGHT_GUEST_CNT AS OVERNIGHT_GUEST_CNT,
+  OVERNIGHT_WITH_DDC_CNT AS OVERNIGHT_WITH_DDC_CNT,
+  DAY_GUEST_CNT AS DAY_GUEST_CNT,
+  DAY_CARE_CNT AS DAY_CARE_CNT,
+  DAY_CAMP_CNT AS DAY_CAMP_CNT,
+  TOTAL_DDC_GUEST_CNT AS TOTAL_DDC_GUEST_CNT,
+  TOTAL_GUEST_CNT AS TOTAL_GUEST_CNT,
+  REQUIRED_PLAYROOM_CNT AS REQUIRED_PLAYROOM_CNT
+FROM
+  PS2_HTL_FORECAST_PRE"""
+
+df_0 = spark.sql(query_0)
+
+df_0.createOrReplaceTempView("Shortcut_to_PS2_HTL_FORECAST_PRE1_0")
+
+# COMMAND ----------
+# DBTITLE 1, SQ_Shortcut_to_PS2_HTL_FORECAST_PRE1_1
+
+
+query_1 = f"""SELECT
+  FORECAST_DAY_DT AS FORECAST_DAY_DT,
+  LOCATION_ID AS LOCATION_ID,
+  WEEK_DT AS WEEK_DT,
+  STORE_NBR AS STORE_NBR,
+  DAY_OF_WK_NBR AS DAY_OF_WK_NBR,
+  OVERNIGHT_GUEST_CNT AS OVERNIGHT_GUEST_CNT,
+  OVERNIGHT_WITH_DDC_CNT AS OVERNIGHT_WITH_DDC_CNT,
+  DAY_GUEST_CNT AS DAY_GUEST_CNT,
+  DAY_CARE_CNT AS DAY_CARE_CNT,
+  DAY_CAMP_CNT AS DAY_CAMP_CNT,
+  TOTAL_DDC_GUEST_CNT AS TOTAL_DDC_GUEST_CNT,
+  TOTAL_GUEST_CNT AS TOTAL_GUEST_CNT,
+  REQUIRED_PLAYROOM_CNT AS REQUIRED_PLAYROOM_CNT,
+  monotonically_increasing_id() AS Monotonically_Increasing_Id
+FROM
+  Shortcut_to_PS2_HTL_FORECAST_PRE1_0"""
+
+df_1 = spark.sql(query_1)
+
+df_1.createOrReplaceTempView("SQ_Shortcut_to_PS2_HTL_FORECAST_PRE1_1")
+
+# COMMAND ----------
+# DBTITLE 1, Shortcut_to_PS2_HTL_FORECAST_PRE_2
+
+
+query_2 = f"""SELECT
+  FORECAST_DAY_DT AS FORECAST_DAY_DT,
+  LOCATION_ID AS LOCATION_ID,
+  WEEK_DT AS WEEK_DT,
+  STORE_NBR AS STORE_NBR,
+  DAY_OF_WK_NBR AS DAY_OF_WK_NBR,
+  OVERNIGHT_GUEST_CNT AS OVERNIGHT_GUEST_CNT,
+  OVERNIGHT_WITH_DDC_CNT AS OVERNIGHT_WITH_DDC_CNT,
+  DAY_GUEST_CNT AS DAY_GUEST_CNT,
+  DAY_CARE_CNT AS DAY_CARE_CNT,
+  DAY_CAMP_CNT AS DAY_CAMP_CNT,
+  TOTAL_DDC_GUEST_CNT AS TOTAL_DDC_GUEST_CNT,
+  TOTAL_GUEST_CNT AS TOTAL_GUEST_CNT,
+  REQUIRED_PLAYROOM_CNT AS REQUIRED_PLAYROOM_CNT
+FROM
+  PS2_HTL_FORECAST_PRE"""
+
+df_2 = spark.sql(query_2)
+
+df_2.createOrReplaceTempView("Shortcut_to_PS2_HTL_FORECAST_PRE_2")
+
+# COMMAND ----------
+# DBTITLE 1, Shortcut_To_DAYS_3
+
+
+query_3 = f"""SELECT
+  DAY_DT AS DAY_DT,
+  BUSINESS_DAY_FLAG AS BUSINESS_DAY_FLAG,
+  HOLIDAY_FLAG AS HOLIDAY_FLAG,
+  DAY_OF_WK_NAME AS DAY_OF_WK_NAME,
+  DAY_OF_WK_NAME_ABBR AS DAY_OF_WK_NAME_ABBR,
+  DAY_OF_WK_NBR AS DAY_OF_WK_NBR,
+  CAL_DAY_OF_MO_NBR AS CAL_DAY_OF_MO_NBR,
+  CAL_DAY_OF_YR_NBR AS CAL_DAY_OF_YR_NBR,
+  CAL_WK AS CAL_WK,
+  CAL_WK_NBR AS CAL_WK_NBR,
+  CAL_MO AS CAL_MO,
+  CAL_MO_NBR AS CAL_MO_NBR,
+  CAL_MO_NAME AS CAL_MO_NAME,
+  CAL_MO_NAME_ABBR AS CAL_MO_NAME_ABBR,
+  CAL_QTR AS CAL_QTR,
+  CAL_QTR_NBR AS CAL_QTR_NBR,
+  CAL_HALF AS CAL_HALF,
+  CAL_YR AS CAL_YR,
+  FISCAL_DAY_OF_MO_NBR AS FISCAL_DAY_OF_MO_NBR,
+  FISCAL_DAY_OF_YR_NBR AS FISCAL_DAY_OF_YR_NBR,
+  FISCAL_WK AS FISCAL_WK,
+  FISCAL_WK_NBR AS FISCAL_WK_NBR,
+  FISCAL_MO AS FISCAL_MO,
+  FISCAL_MO_NBR AS FISCAL_MO_NBR,
+  FISCAL_MO_NAME AS FISCAL_MO_NAME,
+  FISCAL_MO_NAME_ABBR AS FISCAL_MO_NAME_ABBR,
+  FISCAL_QTR AS FISCAL_QTR,
+  FISCAL_QTR_NBR AS FISCAL_QTR_NBR,
+  FISCAL_HALF AS FISCAL_HALF,
+  FISCAL_YR AS FISCAL_YR,
+  LYR_WEEK_DT AS LYR_WEEK_DT,
+  LWK_WEEK_DT AS LWK_WEEK_DT,
+  WEEK_DT AS WEEK_DT,
+  EST_TIME_CONV_AMT AS EST_TIME_CONV_AMT,
+  EST_TIME_CONV_HRS AS EST_TIME_CONV_HRS,
+  ES0_TIME_CONV_AMT AS ES0_TIME_CONV_AMT,
+  ES0_TIME_CONV_HRS AS ES0_TIME_CONV_HRS,
+  CST_TIME_CONV_AMT AS CST_TIME_CONV_AMT,
+  CST_TIME_CONV_HRS AS CST_TIME_CONV_HRS,
+  CS0_TIME_CONV_AMT AS CS0_TIME_CONV_AMT,
+  CS0_TIME_CONV_HRS AS CS0_TIME_CONV_HRS,
+  MST_TIME_CONV_AMT AS MST_TIME_CONV_AMT,
+  MST_TIME_CONV_HRS AS MST_TIME_CONV_HRS,
+  MS0_TIME_CONV_AMT AS MS0_TIME_CONV_AMT,
+  MS0_TIME_CONV_HRS AS MS0_TIME_CONV_HRS,
+  PST_TIME_CONV_AMT AS PST_TIME_CONV_AMT,
+  PST_TIME_CONV_HRS AS PST_TIME_CONV_HRS
+FROM
+  DAYS"""
+
+df_3 = spark.sql(query_3)
+
+df_3.createOrReplaceTempView("Shortcut_To_DAYS_3")
+
+# COMMAND ----------
+# DBTITLE 1, SQ_Shortcut_to_PS2_HTL_FORECAST_PRE_4
+
+
+query_4 = f"""SELECT
+  DISTINCT Shortcut_to_PS2_HTL_FORECAST_PRE_2.LOCATION_ID AS LOCATION_ID,
+  Shortcut_To_DAYS_3.DAY_DT AS DAY_DT,
+  Shortcut_to_PS2_HTL_FORECAST_PRE_2.WEEK_DT AS WEEK_DT,
+  Shortcut_To_DAYS_3.DAY_OF_WK_NBR AS DAY_OF_WK_NBR,
+  monotonically_increasing_id() AS Monotonically_Increasing_Id
+FROM
+  Shortcut_To_DAYS_3,
+  Shortcut_to_PS2_HTL_FORECAST_PRE_2
+WHERE
+  Shortcut_To_DAYS_3.WEEK_DT = Shortcut_to_PS2_HTL_FORECAST_PRE_2.WEEK_DT"""
+
+df_4 = spark.sql(query_4)
+
+df_4.createOrReplaceTempView("SQ_Shortcut_to_PS2_HTL_FORECAST_PRE_4")
+
+# COMMAND ----------
+# DBTITLE 1, JNR_LeftJoin_5
+
+
+query_5 = f"""SELECT
+  DETAIL.LOCATION_ID AS LOCATION_ID,
+  DETAIL.DAY_DT AS DAY_DT,
+  DETAIL.WEEK_DT AS WEEK_DT,
+  DETAIL.DAY_OF_WK_NBR AS DAY_OF_WK_NBR,
+  MASTER.FORECAST_DAY_DT AS M_FORECAST_DAY_DT,
+  DETAIL.Monotonically_Increasing_Id AS Monotonically_Increasing_Id
+FROM
+  SQ_Shortcut_to_PS2_HTL_FORECAST_PRE1_1 MASTER
+  RIGHT JOIN SQ_Shortcut_to_PS2_HTL_FORECAST_PRE_4 DETAIL ON MASTER.FORECAST_DAY_DT = DETAIL.DAY_DT
+  AND MASTER.LOCATION_ID = DETAIL.LOCATION_ID"""
+
+df_5 = spark.sql(query_5)
+
+df_5.createOrReplaceTempView("JNR_LeftJoin_5")
+
+# COMMAND ----------
+# DBTITLE 1, FIL_RemoveNulls_6
+
+
+query_6 = f"""SELECT
+  LOCATION_ID AS LOCATION_ID,
+  DAY_DT AS DAY_DT,
+  WEEK_DT AS WEEK_DT,
+  DAY_OF_WK_NBR AS DAY_OF_WK_NBR,
+  M_FORECAST_DAY_DT AS M_FORECAST_DAY_DT,
+  Monotonically_Increasing_Id AS Monotonically_Increasing_Id
+FROM
+  JNR_LeftJoin_5
+WHERE
+  ISNULL(M_FORECAST_DAY_DT)"""
+
+df_6 = spark.sql(query_6)
+
+df_6.createOrReplaceTempView("FIL_RemoveNulls_6")
+
+# COMMAND ----------
+# DBTITLE 1, EXP_DEFAULT_7
+
+
+query_7 = f"""SELECT
+  LOCATION_ID AS LOCATION_ID,
+  DAY_DT AS DAY_DT,
+  WEEK_DT AS WEEK_DT,
+  DAY_OF_WK_NBR AS DAY_OF_WK_NBR,
+  0 AS DefaultValue,
+  Monotonically_Increasing_Id AS Monotonically_Increasing_Id
+FROM
+  FIL_RemoveNulls_6"""
+
+df_7 = spark.sql(query_7)
+
+df_7.createOrReplaceTempView("EXP_DEFAULT_7")
+
+# COMMAND ----------
+# DBTITLE 1, LKP_SITE_PROFILE_RPT_8
+
+
+query_8 = f"""SELECT
+  SPR.STORE_NBR AS STORE_NBR,
+  ED7.Monotonically_Increasing_Id AS Monotonically_Increasing_Id
+FROM
+  EXP_DEFAULT_7 ED7
+  LEFT JOIN SITE_PROFILE_RPT SPR ON SPR.LOCATION_ID = ED7.LOCATION_ID"""
+
+df_8 = spark.sql(query_8)
+
+df_8.createOrReplaceTempView("LKP_SITE_PROFILE_RPT_8")
+
+# COMMAND ----------
+# DBTITLE 1, PS2_HTL_FORECAST_PRE
+
+
+spark.sql("""INSERT INTO
+  PS2_HTL_FORECAST_PRE
+SELECT
+  null.FORECAST_DAY1 AS FORECAST_DAY_DT,
+  null.FORECAST_DAY1 AS FORECAST_DAY_DT,
+  null.FORECAST_DAY1 AS FORECAST_DAY_DT,
+  null.FORECAST_DAY1 AS FORECAST_DAY_DT,
+  ED7.DAY_DT AS FORECAST_DAY_DT,
+  null.LOCATION_ID1 AS LOCATION_ID,
+  null.LOCATION_ID1 AS LOCATION_ID,
+  null.LOCATION_ID1 AS LOCATION_ID,
+  null.LOCATION_ID AS LOCATION_ID,
+  ED7.LOCATION_ID AS LOCATION_ID,
+  null.WEEK_DT AS WEEK_DT,
+  ED7.WEEK_DT AS WEEK_DT,
+  null.STORE_NBR AS STORE_NBR,
+  LSPR8.STORE_NBR AS STORE_NBR,
+  null.DAY_OF_WK_NBR AS DAY_OF_WK_NBR,
+  ED7.DAY_OF_WK_NBR AS DAY_OF_WK_NBR,
+  null.OVERNIGHT_TOTAL_GUEST_CNT AS OVERNIGHT_GUEST_CNT,
+  ED7.DefaultValue AS OVERNIGHT_GUEST_CNT,
+  null.DefaultValue AS OVERNIGHT_WITH_DDC_CNT,
+  null.OVERNIGHT_WITH_DDC_CNT AS OVERNIGHT_WITH_DDC_CNT,
+  ED7.DefaultValue AS OVERNIGHT_WITH_DDC_CNT,
+  null.DefaultValue AS DAY_GUEST_CNT,
+  null.DAY_GUEST_CNT AS DAY_GUEST_CNT,
+  ED7.DefaultValue AS DAY_GUEST_CNT,
+  null.DefaultValue AS DAY_CARE_CNT,
+  null.DAY_CARE_CNT AS DAY_CARE_CNT,
+  ED7.DefaultValue AS DAY_CARE_CNT,
+  null.DefaultValue AS DAY_CAMP_CNT,
+  null.DAY_CAMP_PLAYROOM_CNT AS DAY_CAMP_CNT,
+  ED7.DefaultValue AS DAY_CAMP_CNT,
+  null.DefaultValue AS TOTAL_DDC_GUEST_CNT,
+  null.TOTAL_DDC_GUEST_CNT AS TOTAL_DDC_GUEST_CNT,
+  ED7.DefaultValue AS TOTAL_DDC_GUEST_CNT,
+  null.DefaultValue AS TOTAL_GUEST_CNT,
+  null.TOTAL_GUEST_CNT AS TOTAL_GUEST_CNT,
+  ED7.DefaultValue AS TOTAL_GUEST_CNT,
+  null.DefaultValue AS REQUIRED_PLAYROOM_CNT,
+  null.REQUIRED_PLAYROOM_CNT AS REQUIRED_PLAYROOM_CNT,
+  ED7.DefaultValue AS REQUIRED_PLAYROOM_CNT
+FROM
+  EXP_DEFAULT_7 ED7
+  INNER JOIN LKP_SITE_PROFILE_RPT_8 LSPR8 ON ED7.Monotonically_Increasing_Id = LSPR8.Monotonically_Increasing_Id""")
+
+# COMMAND ----------
+#Post session variable updation
+updateVariable(postVariableAssignment, variablesTableName, mainWorkflowId, parentName, "m_ps2_htl_forecast_pre_INSERT_MISSING_DAYS")
+
+# COMMAND ----------
+#Update Mapping Variables in database.
+persistVariables(variablesTableName, "m_ps2_htl_forecast_pre_INSERT_MISSING_DAYS", mainWorkflowId, parentName)
